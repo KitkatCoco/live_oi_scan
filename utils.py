@@ -53,7 +53,7 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
     )
 
     # set the y limit to [0, df_oi['sumOpenInterest'].max()]),
-    # fig.update_yaxes(range=[0, df_oi['sumOpenInterest'].max()], row=2, col=1)
+    fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.8, df_oi['sumOpenInterest'].max()], row=2, col=1)
 
     # # Add funding rate
     # fig.add_trace(

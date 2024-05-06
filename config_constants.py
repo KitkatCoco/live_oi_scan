@@ -18,5 +18,21 @@ dict_interval_duration_ms = {
     '1d':  86400000,
 }
 
+dict_threshold_oi_change_pct_positive = {
+    '5m': 2,
+    '15m': 2,
+    '1h': 5,
+    '4h': 5,
+    '12h': 5,
+}
+
+dict_threshold_price_change_pct_negative = {
+    '5m': -1,
+    '15m': -1,
+    '1h': -2,
+    '4h': -2,
+    '12h': -4,
+}
+
 
 

@@ -12,4 +12,3 @@ dependencies:
     - requests
     - binance-futures-connector
     - kaleido
-    - shutils

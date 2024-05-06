@@ -21,9 +21,18 @@ if __name__ == '__main__':
     num_batch_total = args.num_batch_total
     id_batch = args.id_batch
 
-    # interval = '1h'
+    # local debug
+    # interval = '5m'
     # num_batch_total = 1
     # id_batch = 1
+
+    # set up thresholds
+    threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[interval]
+    threshold_oi_change_pct_positive = dict_threshold_oi_change_pct_positive[interval]
+
+    # set up discord webhook
+    url_dc_webhook = dict_dc_webhook[interval]
+    webhook_discord = Discord(url=url_dc_webhook)
 
     # start the timer
     t0 = time.time()
@@ -45,7 +54,6 @@ if __name__ == '__main__':
     current_time = int(time.time() * 1000)  # current time in milliseconds
     current_time_recent_close = current_time - (current_time % interval_duiration_ms)
     start_time = current_time_recent_close - (interval_duiration_ms * num_candle_hist)  # Go back 500 x 5 minutes
-
 
     # loop through symbols:
     for symbol in list_symbols:
@@ -94,15 +102,26 @@ if __name__ == '__main__':
 
             # check in the last N candles, if trading criteria is met
             valid_lengths = []
-            for i in range(search_num_candle_min, search_num_candle_max, 1):
+            for i in range(search_num_candle_min, search_num_candle_max, search_num_candle_inc):
 
                 # calculate the percentage changes
-                arr_price_change_pct = (100 * (df_price['SMA'].iloc[-1] - df_price['SMA'].iloc[-i])
-                                        /df_price['SMA'].iloc[-i])
-                arr_open_interest_change_pct = (100 * (df_oi['SMA'].iloc[-1] - df_oi['SMA'].iloc[-i])
-                                        /df_oi['SMA'].iloc[-i])
-                arr_price_change_pct = round(arr_price_change_pct, 2)
-                arr_open_interest_change_pct = round(arr_open_interest_change_pct, 2)
+                if use_SMA:
+                    arr_price_change_pct = (df_price['SMA'].iloc[-1] - df_price['SMA'].iloc[-i]) /df_price['SMA'].iloc[-i]
+                    arr_price_change_pct = arr_price_change_pct * 100
+                    arr_price_change_pct = round(arr_price_change_pct, 2)
+
+                    arr_open_interest_change_pct = (df_oi['SMA'].iloc[-1] - df_oi['SMA'].iloc[-i]) /df_oi['SMA'].iloc[-i]
+                    arr_open_interest_change_pct = arr_open_interest_change_pct * 100
+                    arr_open_interest_change_pct = round(arr_open_interest_change_pct, 2)
+
+                else:
+                    arr_price_change_pct = (df_price['Close'].iloc[-1] - df_price['Close'].iloc[-i]) / df_price['Close'].iloc[-i]
+                    arr_price_change_pct = arr_price_change_pct * 100
+                    arr_price_change_pct = round(arr_price_change_pct, 2)
+
+                    arr_open_interest_change_pct = (df_oi['sumOpenInterest'].iloc[-1] - df_oi['sumOpenInterest'].iloc[-i]) / df_oi['sumOpenInterest'].iloc[-i]
+                    arr_open_interest_change_pct = arr_open_interest_change_pct * 100
+                    arr_open_interest_change_pct = round(arr_open_interest_change_pct, 2)
 
                 # compare if the change of price and OI meet the requirement
                 if arr_price_change_pct < threshold_price_change_pct_negative \
@@ -127,8 +146,7 @@ if __name__ == '__main__':
                 message_combined = message_separator + message_time + message_name + message_timescale
 
                 # send message
-                url_dc_webhook = dict_dc_webhook['interval']
-                webhook_discord = Discord(url=url_dc_webhook)
+
                 webhook_discord.post(content=message_combined)
 
                 # if generate a plot
