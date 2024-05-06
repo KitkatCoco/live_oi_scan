@@ -26,8 +26,6 @@ except requests.exceptions.RequestException as e:
     print("An error occurred: ", e)
 
 
-
-
 # get rid of some symbols from the exclusion list SCUSDT
 list_exclusion = ['BTCUSDT', 'ETHUSDT', 'ANTUSDT', 'BLUEBIRDUSDT', 'BTCDOMUSDT', 'BTCSTUSDT', 'BTSUSDT', 'COCOSUSDT',
                   'CVCUSDT', 'CTKUSDT', 'DGBUSDT', 'FOOTBALLUSDT', 'HNTUSDT', 'FTTUSDT', 'RAYUSDT', 'SRMUSDT',

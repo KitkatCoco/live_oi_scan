@@ -86,8 +86,6 @@ if __name__ == '__main__':
             assert df_price['Time'].iloc[0] == df_oi['timestamp'].iloc[0]
             assert df_price['Time'].iloc[-1] == df_oi['timestamp'].iloc[-1]
 
-            # plot df_oi[
-
             # Compute the moving averages SMA
             df_price['SMA'] = df_price['High'].rolling(window=SMA_length).mean()
             df_oi['SMA'] = df_oi['sumOpenInterest'].rolling(window=SMA_length).mean()
