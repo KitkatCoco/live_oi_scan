@@ -25,13 +25,22 @@ except requests.exceptions.RequestException as e:
     # Handle exceptions that may occur during the request
     print("An error occurred: ", e)
 
-# get rid of some symbols from the exclusion list
-list_exclusion = ['BTCUSDT', 'ETHUSDT']
+
+
+
+# get rid of some symbols from the exclusion list SCUSDT
+list_exclusion = ['BTCUSDT', 'ETHUSDT', 'ANTUSDT', 'BLUEBIRDUSDT', 'BTCDOMUSDT', 'BTCSTUSDT', 'BTSUSDT', 'COCOSUSDT',
+                  'CVCUSDT', 'CTKUSDT', 'DGBUSDT', 'FOOTBALLUSDT', 'HNTUSDT', 'FTTUSDT', 'RAYUSDT', 'SRMUSDT',
+                  'STRAXUSDT', 'TOMOUSDT', 'USDCUSDT', 'SCUSDT']
 for symbol in list_exclusion:
     list_symbols.remove(symbol)
 
-# sort the list alphabetically
 list_symbols = sorted(list_symbols)
+
+# save the list locally to the original txt file
+with open('list_symbols.txt', 'w') as f:
+    for symbol in list_symbols:
+        f.write(symbol + '\n')
 
 # save the list locally to a pickle file
 with open('list_symbols.pkl', 'wb') as f:

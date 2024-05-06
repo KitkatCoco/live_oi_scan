@@ -35,12 +35,11 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
         row=1, col=1
     )
 
-    # Add open interest plot
+    # Add open interest plot - as bars
     fig.add_trace(
-        go.Scatter(x=df_oi['timestamp'],
-                   y=df_oi['sumOpenInterest'],
-                   mode='lines',
-                   name='Open Interest'),
+        go.Bar(x=df_oi['timestamp'],
+               y=df_oi['sumOpenInterest'],
+               name='Open Interest'),
         row=2, col=1
     )
 

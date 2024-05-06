@@ -11,22 +11,22 @@ from binance.um_futures import UMFutures
 
 if __name__ == '__main__':
 
-    t0 = time.time()
-
-    # TODO: parse the batch number
     # Parse command line arguments for time scale
-    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
-    # parser.add_argument('num_batch_total', type=int, help='the total number of batches')
-    # parser.add_argument('id_batch', type=int, help='the current batch id')
-    # args = parser.parse_args()
-    # interval = args.interval  # Get the timescale from command line arguments
-    # num_batch_total = args.num_batch_total
-    # id_batch = args.id_batch
+    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
+    parser.add_argument('num_batch_total', type=int, help='the total number of batches')
+    parser.add_argument('id_batch', type=int, help='the current batch id')
+    args = parser.parse_args()
+    interval = args.interval  # Get the timescale from command line arguments
+    num_batch_total = args.num_batch_total
+    id_batch = args.id_batch
 
-    interval = '1h'
-    num_batch_total = 10
-    id_batch = 1
+    # interval = '1h'
+    # num_batch_total = 1
+    # id_batch = 1
+
+    # start the timer
+    t0 = time.time()
 
     # Initialize Binance UMFutures client
     um_futures_client = UMFutures()
@@ -50,7 +50,6 @@ if __name__ == '__main__':
     # loop through symbols:
     for symbol in list_symbols:
 
-        print(symbol)
         t1 = time.time()
 
         try:
@@ -68,13 +67,6 @@ if __name__ == '__main__':
                                                            limit=num_candle_hist,
                                                            startTime=start_time,
                                                            endTime=current_time_recent_close)
-
-            # debug - save the raw data
-            with open('price_data.pkl', 'wb') as f:
-                pickle.dump(price_data, f)
-            with open('oi_data.pkl', 'wb') as f:
-                pickle.dump(oi_data, f)
-
 
             # Process price data
             df_price = pd.DataFrame(price_data,
