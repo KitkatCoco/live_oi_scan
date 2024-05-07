@@ -11,20 +11,21 @@ from binance.um_futures import UMFutures
 
 if __name__ == '__main__':
 
-    # Parse command line arguments for time scale
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
-    parser.add_argument('num_batch_total', type=int, help='the total number of batches')
-    parser.add_argument('id_batch', type=int, help='the current batch id')
-    args = parser.parse_args()
-    interval = args.interval  # Get the timescale from command line arguments
-    num_batch_total = args.num_batch_total
-    id_batch = args.id_batch
+    # # Parse command line arguments for time scale
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
+    # parser.add_argument('num_batch_total', type=int, help='the total number of batches')
+    # parser.add_argument('id_batch', type=int, help='the current batch id')
+    # args = parser.parse_args()
+    # interval = args.interval  # Get the timescale from command line arguments
+    # num_batch_total = args.num_batch_total
+    # id_batch = args.id_batch
 
     # local debug
-    # interval = '5m'
-    # num_batch_total = 1
-    # id_batch = 1
+    interval = '5m'
+    interval = '1d'
+    num_batch_total = 1
+    id_batch = 1
 
     # set up thresholds
     threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[interval]
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     interval_duiration_ms = dict_interval_duration_ms[interval]
     current_time = int(time.time() * 1000)  # current time in milliseconds
     current_time_recent_close = current_time - (current_time % interval_duiration_ms)
-    start_time = current_time_recent_close - (interval_duiration_ms * num_candle_hist)  # Go back 500 x 5 minutes
+    start_time = current_time_recent_close - (interval_duiration_ms * num_candle_hist)
 
     # loop through symbols:
     for symbol in list_symbols:
@@ -94,18 +95,17 @@ if __name__ == '__main__':
             assert df_price['Time'].iloc[0] == df_oi['timestamp'].iloc[0]
             assert df_price['Time'].iloc[-1] == df_oi['timestamp'].iloc[-1]
 
-            # Compute the moving averages SMA
-            df_price['SMA'] = df_price['High'].rolling(window=SMA_length).mean()
-            df_oi['SMA'] = df_oi['sumOpenInterest'].rolling(window=SMA_length).mean()
-            df_price.dropna(inplace=True)
-            df_oi.dropna(inplace=True)
-
             # check in the last N candles, if trading criteria is met
             valid_lengths = []
             for i in range(search_num_candle_min, search_num_candle_max, search_num_candle_inc):
 
                 # calculate the percentage changes
                 if use_SMA:
+                    df_price['SMA'] = df_price['Low'].rolling(window=SMA_length).mean()
+                    df_oi['SMA'] = df_oi['sumOpenInterest'].rolling(window=SMA_length).mean()
+                    df_price.dropna(inplace=True)
+                    df_oi.dropna(inplace=True)
+
                     arr_price_change_pct = (df_price['SMA'].iloc[-1] - df_price['SMA'].iloc[-i]) /df_price['SMA'].iloc[-i]
                     arr_price_change_pct = arr_price_change_pct * 100
                     arr_price_change_pct = round(arr_price_change_pct, 2)
@@ -135,30 +135,33 @@ if __name__ == '__main__':
                 datetime_now = datetime.datetime.utcnow()
                 datetime_now_str = datetime_now.strftime(DATETIME_FORMAT)
 
+                # calculate the min and max value in the last N=search_num_candle_max candles of df_oi
+                oi_min = df_oi['sumOpenInterest'].iloc[-search_num_candle_max:].min()
+                oi_max = df_oi['sumOpenInterest'].iloc[-search_num_candle_max:].max()
+                oi_diff_pct = (oi_max - oi_min) / oi_min * 100
+
                 # send signal to discord
-                # set up message
                 message_separator = '-------------------------------------\n'
                 message_time = f'时间 {datetime_now_str}\n'
                 message_name = f'标的 {symbol}\n'
                 message_timescale = f'周期 {interval}\n'
-
-                # combine the message
-                message_combined = message_separator + message_time + message_name + message_timescale
-
-                # send message
-
+                message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
+                # message_oi_change = f'```diff\n- 涨幅 {arr_open_interest_change_pct}% (OI)\n```'
+                message_combined = message_separator + message_time + message_name + message_timescale + message_oi_change
                 webhook_discord.post(content=message_combined)
 
-                # if generate a plot
+                # if generate a plot, send the plot to the channel
                 if generate_plot:
                     fig_pattern = generate_combined_chart(df_price, df_oi, symbol, interval)
-                    fig_pattern.write_image('fig_pattern.png')
+                    # generate a random integer number in the file name
+                    fig_name = f'fig_pattern_{symbol}_{interval}.png'
+                    fig_pattern.write_image(fig_name)
                     webhook_discord.post(
                         file={
-                            "file1": open("fig_pattern.png", "rb"),
+                            "file1": open(fig_name, "rb"),
                         },
                     )
-                    os.remove('fig_pattern.png')
+                    os.remove(fig_name)
 
             # check total run time
             t2 = time.time()

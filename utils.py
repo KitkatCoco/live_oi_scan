@@ -53,17 +53,7 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
     )
 
     # set the y limit to [0, df_oi['sumOpenInterest'].max()]),
-    fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.8, df_oi['sumOpenInterest'].max()], row=2, col=1)
-
-    # # Add funding rate
-    # fig.add_trace(
-    #     go.Scatter(x=[df_price['Time'].iloc[0],
-    #                   df_price['Time'].iloc[-1]],
-    #                y=[0, 0],
-    #                mode='lines',
-    #                name='Funding Rate'),
-    #     row=3, col=1
-    # )
+    fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.95, df_oi['sumOpenInterest'].max()], row=2, col=1)
 
     # Update layout to make the plot wider and remove the range slider from the OHLC plot
     fig.update_layout(height=900, width=1200,
