@@ -25,7 +25,7 @@ dict_threshold_oi_change_pct_positive = {
     '1h': 10,
     '4h': 10,
     '12h': 10,
-    '1d': 10,
+    '1d': 15,
 }
 
 dict_threshold_price_change_pct_negative = {
@@ -34,7 +34,7 @@ dict_threshold_price_change_pct_negative = {
     '1h': -6,
     '4h': -6,
     '12h': -8,
-    '1d': -8,
+    '1d': -12,
 }
 
 

@@ -26,31 +26,34 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
         row=1, col=1
     )
 
-    # Add SMA plot
-    fig.add_trace(
-        go.Scatter(x=df_price['Time'],
-                   y=df_price['SMA'],
-                   mode='lines',
-                   name='SMA'),
-        row=1, col=1
-    )
+    # Add SMA plot, if it exists
+    if 'SMA' in df_price.columns:
+        fig.add_trace(
+            go.Scatter(x=df_price['Time'],
+                       y=df_price['SMA'],
+                       mode='lines',
+                       name='SMA'),
+            row=1, col=1
+        )
 
-    # Add open interest plot - as bars
+    # Add open interest plot - as green bars
     fig.add_trace(
         go.Bar(x=df_oi['timestamp'],
                y=df_oi['sumOpenInterest'],
-               name='Open Interest'),
+               name='Open Interest',
+               marker_color='green'),
         row=2, col=1
     )
 
-    # Add SMA plot
-    fig.add_trace(
-        go.Scatter(x=df_oi['timestamp'],
-                   y=df_oi['SMA'],
-                   mode='lines',
-                   name='SMA'),
-        row=2, col=1
-    )
+    # Add SMA plot, if it exists
+    if 'SMA' in df_oi.columns:
+        fig.add_trace(
+            go.Scatter(x=df_oi['timestamp'],
+                       y=df_oi['SMA'],
+                       mode='lines',
+                       name='SMA'),
+            row=2, col=1
+        )
 
     # set the y limit to [0, df_oi['sumOpenInterest'].max()]),
     fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.95, df_oi['sumOpenInterest'].max()], row=2, col=1)

@@ -7,25 +7,28 @@ from utils import *
 
 from binance.um_futures import UMFutures
 
-
-
 if __name__ == '__main__':
 
-    # # Parse command line arguments for time scale
-    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
-    # parser.add_argument('num_batch_total', type=int, help='the total number of batches')
-    # parser.add_argument('id_batch', type=int, help='the current batch id')
-    # args = parser.parse_args()
-    # interval = args.interval  # Get the timescale from command line arguments
-    # num_batch_total = args.num_batch_total
-    # id_batch = args.id_batch
+    # Parse command line arguments for time scale
+    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
+    parser.add_argument('num_batch_total', type=int, help='the total number of batches')
+    parser.add_argument('id_batch', type=int, help='the current batch id')
+    args = parser.parse_args()
+    interval = args.interval  # Get the timescale from command line arguments
+    num_batch_total = args.num_batch_total
+    id_batch = args.id_batch
 
     # local debug
-    interval = '5m'
-    interval = '1d'
-    num_batch_total = 1
-    id_batch = 1
+    # interval = '5m'
+    # interval = '1d'
+    # num_batch_total = 1
+    # id_batch = 1
+
+    # update the num_candle_hist if the interval is 1d
+    if interval == '1d':
+        num_candle_hist = 29
+        use_SMA = False
 
     # set up thresholds
     threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[interval]
