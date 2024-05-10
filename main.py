@@ -174,10 +174,10 @@ if __name__ == '__main__':
                 # RSI signal
                 if RSI_cur <= RSI_oversold:
                     is_rsi_oversold = True
-                    msg_rsi = 'RSI超卖'
+                    msg_rsi = f'RSI超卖<{RSI_oversold}'
                 if RSI_cur >= RSI_overbought:
                     is_rsi_overbought = True
-                    msg_rsi = 'RSI超买'
+                    msg_rsi = f'RSI超买>{RSI_overbought}'
 
                 # Pinbar signal
                 if (lower_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and
