@@ -12,7 +12,7 @@ flag_analysis_oi = True
 flag_analysis_pa = True
 
 ### Technical Analysis Parameters
-RSI_oversold = 40
-RSI_overbought = 60
+RSI_oversold = 30
+RSI_overbought = 70
 pinbar_body_ATR_thres_multiplier = 0.5
 Vol_MA_thres_multiplier = 0.5
