@@ -270,7 +270,7 @@ if __name__ == '__main__':
                     webhook_discord_oi.post(content=message_combined)
 
                     if decision_entry_oi:
-                        message_entry = f'**OI 交易信号 Long-only (价格)**\n'
+                        message_entry = f'**信号 Long entry**\n'
                         message_combined_trading = message_separator + message_time + message_name + message_timescale + message_entry
                         webhook_discord_oi_trading.post(content=message_combined_trading)
 
