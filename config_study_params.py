@@ -3,7 +3,7 @@ SMA_length_oi = 3
 num_candle_hist_price = 200
 num_candle_hist_oi = 50
 search_num_candle_min = 2
-search_num_candle_max = 30
+search_num_candle_max = 20
 search_num_candle_inc = 2
 generate_plot = True
 
