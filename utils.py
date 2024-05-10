@@ -1,17 +1,9 @@
-import requests
-import pandas as pd
-import time
-import os
-import datetime
-import argparse
-from discordwebhook import Discord
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def generate_combined_chart(df_price, df_oi, symbol, interval):
+def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
 
-    # Create a 3x1 subplot
+    # Create a 2x1 subplot
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
                         subplot_titles=("Candlestick Price Data", "Open Interest", "Funding Rate"))
 
@@ -27,7 +19,7 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
     )
 
     # Add SMA plot, if it exists
-    if 'SMA' in df_price.columns:
+    if use_sma:
         fig.add_trace(
             go.Scatter(x=df_price['Time'],
                        y=df_price['SMA'],
@@ -36,17 +28,19 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
             row=1, col=1
         )
 
-    # Add open interest plot - as green bars
+    # Add open interest plot - as light green bars
     fig.add_trace(
         go.Bar(x=df_oi['timestamp'],
                y=df_oi['sumOpenInterest'],
                name='Open Interest',
-               marker_color='green'),
+               marker=dict(color='lightgreen')),
         row=2, col=1
     )
 
+
+
     # Add SMA plot, if it exists
-    if 'SMA' in df_oi.columns:
+    if use_sma:
         fig.add_trace(
             go.Scatter(x=df_oi['timestamp'],
                        y=df_oi['SMA'],
@@ -59,7 +53,7 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
     fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.95, df_oi['sumOpenInterest'].max()], row=2, col=1)
 
     # Update layout to make the plot wider and remove the range slider from the OHLC plot
-    fig.update_layout(height=900, width=1200,
+    fig.update_layout(height=600, width=1000,
                       title_text=f"{symbol} {interval}",
                       template="plotly_dark"
                       )
@@ -75,6 +69,9 @@ def generate_combined_chart(df_price, df_oi, symbol, interval):
         xanchor="right",
         x=1
     ))
+
+    # Increase font sizes for the title as well as the chart title
+    fig.update_layout(font=dict(size=22))
 
     # remove legends
     fig.update_layout(showlegend=False)
