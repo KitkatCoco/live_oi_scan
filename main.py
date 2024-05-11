@@ -182,12 +182,10 @@ if __name__ == '__main__':
 
                 # Pinbar signal
                 if (lower_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and
-                        cur_price_close > cur_price_open and
                         Vol_cur > Vol_MA_thres_multiplier * Vol_MA_cur):
                     is_bullish_pinbar = True
                     msg_pinbar = '看涨针线'
                 if (upper_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and
-                        cur_price_close < cur_price_open and
                         Vol_cur > Vol_MA_thres_multiplier * Vol_MA_cur):
                     is_bearish_pinbar = True
                     msg_pinbar = '看跌针线'
