@@ -18,24 +18,24 @@ from utils import *
 
 if __name__ == '__main__':
 
-    # # Parse command line arguments for time scale
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
-    parser.add_argument('num_batch_total', type=int, help='the total number of batches')
-    parser.add_argument('id_batch', type=int, help='the current batch id')
-    args = parser.parse_args()
-    interval = args.interval  # Get the timescale from command line arguments
-    num_batch_total = args.num_batch_total
-    id_batch = args.id_batch
+    # # # Parse command line arguments for time scale
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
+    # parser.add_argument('num_batch_total', type=int, help='the total number of batches')
+    # parser.add_argument('id_batch', type=int, help='the current batch id')
+    # args = parser.parse_args()
+    # interval = args.interval  # Get the timescale from command line arguments
+    # num_batch_total = args.num_batch_total
+    # id_batch = args.id_batch
 
     # local debug
-    # interval = '15m'
-    # interval = '1d'
-    # interval = '12h'
-    # interval = '4h'
+    interval = '15m'
+    interval = '1d'
+    interval = '12h'
+    interval = '4h'
     # interval = '1h'
-    # num_batch_total = 1
-    # id_batch = 1
+    num_batch_total = 1
+    id_batch = 1
 
     # update the num_candle_hist if the interval is 1d
     if interval == '1d':
@@ -244,8 +244,25 @@ if __name__ == '__main__':
                     except:
                         continue
 
-                # if signal is found
-                if len(valid_lengths) > 3:  # at least 4 valid lengths
+                if len(valid_lengths) > 3:
+                    oi_criteria_short_range = False
+                    oi_criteria_mid_range = False
+                    oi_criteria_long_range = False
+
+                    short_range_end = search_num_candle_min + (search_num_candle_max - search_num_candle_min) // 3
+                    mid_range_end = search_num_candle_min + 2 * (search_num_candle_max - search_num_candle_min) // 3
+                    # check if any element in valid_lengths is within the range of 3 and 10
+                    if any(search_num_candle_min <= x <= short_range_end - 1 for x in valid_lengths):
+                        oi_criteria_short_range = True
+                    if any(short_range_end <= x <= mid_range_end - 1 for x in valid_lengths):
+                        oi_criteria_mid_range = True
+                    if any(mid_range_end <= x <= search_num_candle_max for x in valid_lengths):
+                        oi_criteria_long_range = True
+                    oi_criteria_all = oi_criteria_short_range and oi_criteria_mid_range and oi_criteria_long_range
+
+                    if not oi_criteria_all:
+                        # print(f'OI criteria not met for {symbol} at {datetime_now_str}')
+                        continue
 
                     # calculate the min and max value in the last N=search_num_candle_max candles of df_oi
                     oi_min = df_oi['sumOpenInterest'].iloc[-search_num_candle_max:].min()

@@ -37,8 +37,6 @@ def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
         row=2, col=1
     )
 
-
-
     # Add SMA plot, if it exists
     if use_sma:
         fig.add_trace(
