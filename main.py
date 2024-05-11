@@ -117,10 +117,11 @@ if __name__ == '__main__':
             df_price['SMA'] = talib.SMA(df_price['Close'], timeperiod=SMA_length_price)
             df_price['ATR'] = talib.ATR(df_price['High'], df_price['Low'], df_price['Close'], timeperiod=100)
             df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=100)
-            df_price['lower_pinbar_length'] = np.where(df_price['Open'] > df_price['Close'],
+            # TODO double check this logic
+            df_price['lower_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
                                                        df_price['Close'] - df_price['Low'],
                                                        df_price['Open'] - df_price['Low'])
-            df_price['upper_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
+            df_price['upper_pinbar_length'] = np.where(df_price['Open'] > df_price['Close'],
                                                        df_price['High'] - df_price['Close'],
                                                        df_price['High'] - df_price['Open'])
             df_price.dropna(inplace=True)
