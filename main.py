@@ -309,7 +309,11 @@ if __name__ == '__main__':
                     message_time = f'时间 {datetime_now_str}\n'
                     message_name = f'标的 {symbol}\n'
                     message_timescale = f'周期 {interval}\n'
-                    message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
+                    if arr_open_interest_change_pct < 40:
+                        message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
+                    else:
+                        # if greater than 40, add a green apple emoji to the front
+                        message_oi_change = f'**🍏 涨幅 {arr_open_interest_change_pct}% (OI)**\n'
                     message_combined = message_separator + message_time + message_name + message_timescale + message_oi_change
                     webhook_discord_oi.post(content=message_combined)
 
