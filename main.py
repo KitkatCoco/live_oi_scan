@@ -293,8 +293,16 @@ if __name__ == '__main__':
                     # if RSI_cur <= RSI_oversold and \
                     #         lower_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and \
                     #         Vol_cur > Vol_MA_thres_multiplier * Vol_MA_cur:
-                    if is_rsi_oversold or is_lowest_low or is_bullish_pinbar:
+                    if is_rsi_oversold:
+                        message_entry = f'**信号 RSI超卖**\n'
                         decision_entry_oi = True
+                    if is_bullish_pinbar:
+                        message_entry = f'**信号 看涨针线**\n'
+                        decision_entry_oi = True
+                    if is_rsi_oversold and is_bullish_pinbar:
+                        message_entry = f'**信号 RSI超卖 + 看涨针线**\n'
+                        decision_entry_oi = True
+
 
                     # send signal to discord - OI alerts
                     message_separator = '-------------------------------------\n'
