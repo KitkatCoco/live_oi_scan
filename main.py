@@ -119,9 +119,9 @@ if __name__ == '__main__':
             df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=100)
             # TODO double check this logic
             df_price['lower_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
-                                                       df_price['Close'] - df_price['Low'],
-                                                       df_price['Open'] - df_price['Low'])
-            df_price['upper_pinbar_length'] = np.where(df_price['Open'] > df_price['Close'],
+                                                       df_price['Open'] - df_price['Low'],
+                                                       df_price['Close'] - df_price['Low'])
+            df_price['upper_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
                                                        df_price['High'] - df_price['Close'],
                                                        df_price['High'] - df_price['Open'])
             df_price.dropna(inplace=True)
@@ -181,26 +181,27 @@ if __name__ == '__main__':
                     msg_rsi = f'RSI超买>{RSI_overbought}'
 
                 # Pinbar signal
-                if (lower_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and
-                        Vol_cur > Vol_MA_thres_multiplier * Vol_MA_cur):
+                if lower_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and \
+                    cur_price_close > cur_price_open:
                     is_bullish_pinbar = True
                     msg_pinbar = '看涨针线'
-                if (upper_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and
-                        Vol_cur > Vol_MA_thres_multiplier * Vol_MA_cur):
+                if upper_pinbar_cur > pinbar_body_ATR_thres_multiplier * ATR_cur and \
+                    cur_price_close < cur_price_open:
                     is_bearish_pinbar = True
                     msg_pinbar = '看跌针线'
 
                 # check if the last candle's low is the lowest in all last num_candle_hist_oi candles
-                num_candle_hl_check = min(20, len(df_price))
-                if cur_price_low == df_price['Low'].iloc[-20:].min():
-                    is_lowest_low = True
-                    msg_high_low = '价格新低'
-                if cur_price_high == df_price['High'].iloc[-20:].max():
-                    is_highest_high = True
-                    msg_high_low = '价格新高'
+                # num_candle_hl_check = min(20, len(df_price))
+                # if cur_price_low == df_price['Low'].iloc[-20:].min():
+                #     is_lowest_low = True
+                #     msg_high_low = '价格新低'
+                # if cur_price_high == df_price['High'].iloc[-20:].max():
+                #     is_highest_high = True
+                #     msg_high_low = '价格新高'
 
                 # send signal to discord - PA alerts
-                if is_rsi_oversold or is_rsi_overbought or is_bullish_pinbar or is_bearish_pinbar or is_lowest_low:
+                # if is_rsi_oversold or is_rsi_overbought or is_bullish_pinbar or is_bearish_pinbar or is_lowest_low:
+                if is_rsi_oversold or is_rsi_overbought or is_bullish_pinbar or is_bearish_pinbar:
                     message_separator = '-------------------------------------\n'
                     message_time = f'时间 {datetime_now_str}\n'
                     message_name = f'标的 {symbol}\n'
@@ -222,8 +223,20 @@ if __name__ == '__main__':
 
             # 3 - OI analysis
             if flag_analysis_oi:
+
                 # check in the last N candles, if trading criteria is met
                 valid_lengths = []
+
+                short_range_end = search_num_candle_min + (search_num_candle_max - search_num_candle_min) // 3
+                mid_range_end = search_num_candle_min + 2 * (search_num_candle_max - search_num_candle_min) // 3
+
+                # for gradual condition check
+                threshold_price_change_pct_negative_short_term = threshold_price_change_pct_negative / 3
+                threshold_price_change_pct_negative_mid_term = threshold_price_change_pct_negative * 2 / 3
+                threshold_oi_change_pct_positive_short_term = threshold_oi_change_pct_positive / 3
+                threshold_oi_change_pct_positive_mid_term = threshold_oi_change_pct_positive * 2 / 3
+
+
                 for i in range(search_num_candle_min, search_num_candle_max, search_num_candle_inc):
 
                     try:
@@ -236,9 +249,18 @@ if __name__ == '__main__':
                         arr_open_interest_change_pct = round(arr_open_interest_change_pct, 2)
 
                         # compare if the change of price and OI meet the requirement
-                        if arr_price_change_pct < threshold_price_change_pct_negative \
-                            and arr_open_interest_change_pct > threshold_oi_change_pct_positive:
-                            valid_lengths.append(i)
+                        if i <= short_range_end:
+                            if (arr_price_change_pct < threshold_price_change_pct_negative_short_term and
+                                    arr_open_interest_change_pct > threshold_oi_change_pct_positive_short_term):
+                                valid_lengths.append(i)
+                        elif i > short_range_end and i <= mid_range_end:
+                            if (arr_price_change_pct < threshold_price_change_pct_negative_mid_term and
+                                    arr_open_interest_change_pct > threshold_oi_change_pct_positive_mid_term):
+                                valid_lengths.append(i)
+                        else:
+                            if (arr_price_change_pct < threshold_price_change_pct_negative and
+                                    arr_open_interest_change_pct > threshold_oi_change_pct_positive):
+                                valid_lengths.append(i)
 
                     except:
                         continue
@@ -248,8 +270,6 @@ if __name__ == '__main__':
                     oi_criteria_mid_range = False
                     oi_criteria_long_range = False
 
-                    short_range_end = search_num_candle_min + (search_num_candle_max - search_num_candle_min) // 3
-                    mid_range_end = search_num_candle_min + 2 * (search_num_candle_max - search_num_candle_min) // 3
                     # check if any element in valid_lengths is within the range of 3 and 10
                     if any(search_num_candle_min <= x <= short_range_end - 1 for x in valid_lengths):
                         oi_criteria_short_range = True
