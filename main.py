@@ -19,23 +19,23 @@ from utils import *
 if __name__ == '__main__':
 
     # # # Parse command line arguments for time scale
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
-    parser.add_argument('num_batch_total', type=int, help='the total number of batches')
-    parser.add_argument('id_batch', type=int, help='the current batch id')
-    args = parser.parse_args()
-    interval = args.interval  # Get the timescale from command line arguments
-    num_batch_total = args.num_batch_total
-    id_batch = args.id_batch
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1w, 1d, 12h, 1h')
+    # parser.add_argument('num_batch_total', type=int, help='the total number of batches')
+    # parser.add_argument('id_batch', type=int, help='the current batch id')
+    # args = parser.parse_args()
+    # interval = args.interval  # Get the timescale from command line arguments
+    # num_batch_total = args.num_batch_total
+    # id_batch = args.id_batch
 
     # local debug
-    # interval = '15m'
-    # interval = '1d'
-    # interval = '12h'
-    # interval = '4h'
+    interval = '15m'
+    interval = '1d'
+    interval = '12h'
+    interval = '4h'
     # interval = '1h'
-    # num_batch_total = 1
-    # id_batch = 1
+    num_batch_total = 1
+    id_batch = 1
 
     # update the num_candle_hist if the interval is 1d
     if interval == '1d':
@@ -313,7 +313,7 @@ if __name__ == '__main__':
                         message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
                     else:
                         # if greater than 40, add a green apple emoji to the front
-                        message_oi_change = f'**🍏 涨幅 {arr_open_interest_change_pct}% (OI)**\n'
+                        message_oi_change = f'**涨幅 🍏{arr_open_interest_change_pct}% (OI)**\n'
                     message_combined = message_separator + message_time + message_name + message_timescale + message_oi_change
                     webhook_discord_oi.post(content=message_combined)
 
