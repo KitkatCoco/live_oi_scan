@@ -106,6 +106,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
     """
     # Constants for axes limits
     max_limits = {
+        '15m': (MAX_PRICE_DROP_PCT_15M, MAX_OI_INCREASE_PCT_15M),
         '1h': (MAX_PRICE_DROP_PCT_1H, MAX_OI_INCREASE_PCT_1H),
         '4h': (MAX_PRICE_DROP_PCT_4H, MAX_OI_INCREASE_PCT_4H),
         '12h': (MAX_PRICE_DROP_PCT_12H, MAX_OI_INCREASE_PCT_12H),
@@ -131,7 +132,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
                      title="")
 
     # Update traces and layout for detailed display
-    fig.update_traces(textposition='top center', marker=dict(size=8), textfont=dict(size=14))
+    fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
             title='Max Price Drop (%)',

@@ -24,7 +24,7 @@ def process_symbol(symbol):
     results = processor.run()
 
     # pause for 0.1 second
-    time.sleep(0.5)
+    time.sleep(0.8)
 
     if results is not None:
         print(f"Processed {symbol}")
@@ -46,32 +46,38 @@ def main(interval, num_processes=None):
     # convert dict to dataframe
 
 def post_processing_oi(results_oi, interval):
-
-    df_oi_analysis = pd.DataFrame.from_dict(results_oi)
-    fig_oi_analysis = plot_oi_analysis(df_oi_analysis, interval)
-    fig_name = f'fig_oi_summary_{interval}.png'
-    fig_oi_analysis.write_image(fig_name)
-
-    # send the plot to the channel
     webhook_discord_oi = Discord(url=dict_dc_webhook_oi[interval])
-    webhook_discord_oi.post(
-        file={
-            "file1": open(fig_name, "rb"),
-        },
-    )
 
-    # remove the plot
-    os.remove(fig_name)
+    if results_oi is None:
+        webhook_discord_oi.post(
+            content="No Open Interest data found."
+        )
+        return
 
-
-
+    else:
+        df_oi_analysis = pd.DataFrame.from_dict(results_oi)
+        fig_oi_analysis = plot_oi_analysis(df_oi_analysis, interval)
+        fig_name = f'fig_oi_summary_{interval}.png'
+        fig_oi_analysis.write_image(fig_name)
+        webhook_discord_oi.post(
+            file={
+                "file1": open(fig_name, "rb"),
+            },
+        )
+        os.remove(fig_name)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
-    args = parser.parse_args()
-    interval = args.interval
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    # args = parser.parse_args()
+    # interval = args.interval
+
+
+    interval = '15m'
+    # interval = '4h'
+    # interval = '12h'
+
 
     # timer
     start_time = time.time()
