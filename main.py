@@ -19,15 +19,13 @@ def worker_init(interval):
     processor = TradingSymbolProcessor(interval)
 
 def process_symbol(symbol):
-    print(f"Processing {symbol}")
+    # print(f"Processing {symbol}")
     processor.setup_for_new_symbol(symbol)
     results = processor.run()
 
     # pause for 0.1 second
     time.sleep(0.8)
 
-    if results is not None:
-        print(f"Processed {symbol}")
     return results
 
 def main(interval, num_processes=None):
@@ -48,7 +46,7 @@ def main(interval, num_processes=None):
 def post_processing_oi(results_oi, interval):
     webhook_discord_oi = Discord(url=dict_dc_webhook_oi[interval])
 
-    if results_oi is None:
+    if len(results_oi) == 0:
         webhook_discord_oi.post(
             content="No Open Interest data found."
         )
@@ -68,13 +66,13 @@ def post_processing_oi(results_oi, interval):
 
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
-    # args = parser.parse_args()
-    # interval = args.interval
+    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    args = parser.parse_args()
+    interval = args.interval
 
 
-    interval = '15m'
+    # interval = '15m'
     # interval = '4h'
     # interval = '12h'
 
