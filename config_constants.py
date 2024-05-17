@@ -11,21 +11,21 @@ dict_interval_duration_ms = {
 }
 
 dict_threshold_oi_change_pct_positive = {
-    '5m': 2,
-    '15m': 3,
-    '1h': 5,
-    '4h': 5,
-    '12h': 8,
-    '1d': 10,
+    '5m': 1,
+    '15m': 1,
+    '1h': 2,
+    '4h': 2,
+    '12h': 4,
+    '1d': 4,
 }
 
 dict_threshold_price_change_pct_negative = {
-    '5m': -2,
-    '15m': -3,
-    '1h': -5,
-    '4h': -5,
-    '12h': -8,
-    '1d': -10,
+    '5m': -1,
+    '15m': -1,
+    '1h': -2,
+    '4h': -2,
+    '12h': -4,
+    '1d': -4,
 }
 
 

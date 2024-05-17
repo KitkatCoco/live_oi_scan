@@ -5,6 +5,7 @@ import numpy as np
 import talib
 from discordwebhook import Discord
 from binance.um_futures import UMFutures
+import traceback
 
 from config_constants import *
 from config_study_params import *
@@ -14,33 +15,26 @@ from utils import *
 
 class TradingSymbolProcessor:
     def __init__(self, interval):
-        # init variables
-        self.symbol = None  # Symbol is set by the worker function for each task
         self.interval = interval
-        self.current_time = None  # Initialize to None or a suitable default value
-        self.current_time_recent_close = None
+        self.um_futures_client = UMFutures()
+        self._setup_webhooks()
+        self._setup_static_parameters()
+        self._setup_current_timestamp()
+
+    def setup_for_new_symbol(self, symbol):
+        # This method resets and initializes everything necessary for a new symbol
+        self.symbol = symbol
         self.df_price = None
         self.df_price_oi = None
-
-        # status variables
-        self.flag_run_oi_analysis = False
-        self.flag_run_pa_analysis = False
-
-        # init the binance future connector
-        self.um_futures_client = UMFutures()
-
-        # init functions
-        self._setup_current_timestamp()
-        self._setup_thresholds()
-        self._setup_webhooks()
+        self.df_oi = None
 
 
-    def _setup_thresholds(self):
-        # Setup trading thresholds based on the interval
+    def _setup_static_parameters(self):
+        # Static parameters initialized once since they don't change per symbol
         self.threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[self.interval]
         self.threshold_oi_change_pct_positive = dict_threshold_oi_change_pct_positive[self.interval]
-
-        # Pre-calculate static analysis parameters for OI analysis
+        self.threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[self.interval]
+        self.threshold_oi_change_pct_positive = dict_threshold_oi_change_pct_positive[self.interval]
         self.short_range_end = SEARCH_NUM_CANDLE_MIN + (SEARCH_NUM_CANDLE_MAX - SEARCH_NUM_CANDLE_MIN) // 3
         self.mid_range_end = SEARCH_NUM_CANDLE_MIN + 2 * (SEARCH_NUM_CANDLE_MAX - SEARCH_NUM_CANDLE_MIN) // 3
         self.threshold_price_change_pct_negative_short_term = self.threshold_price_change_pct_negative / 3
@@ -55,15 +49,13 @@ class TradingSymbolProcessor:
         self.webhook_discord_pa = Discord(url=dict_dc_webhook_pa[self.interval])
 
     def _setup_current_timestamp(self):
-        interval_duiration_ms = dict_interval_duration_ms[self.interval]
-        current_time = int(time.time() * 1000)  # current time in milliseconds
-        current_time_recent_close = current_time - (current_time % interval_duiration_ms)
-        start_time_price = current_time_recent_close - (interval_duiration_ms * NUM_CANDLE_HIST_PRICE)
-
-        self.interval_duiration_ms = interval_duiration_ms
+        current_time = int(time.time() * 1000)
+        self.interval_duiration_ms = dict_interval_duration_ms[self.interval]
+        self.current_time_recent_close = current_time - (current_time % self.interval_duiration_ms)
         self.current_time = current_time
-        self.current_time_recent_close = current_time_recent_close
-        self.start_time_price = start_time_price
+        self.start_time_price = (self.current_time_recent_close
+                                 - NUM_CANDLE_HIST_PRICE * dict_interval_duration_ms[self.interval])
+
 
     def _get_price_data(self):
 
@@ -74,7 +66,7 @@ class TradingSymbolProcessor:
                                                        limit=NUM_CANDLE_HIST_PRICE,
                                                        startTime=self.start_time_price,
                                                        )
-                                                       # endTime=self.current_time_recent_close)
+
             df_price = pd.DataFrame(price_data,
                                     columns=['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close Time',
                                              'Quote Asset Volume', 'Number of Trades', 'Taker Buy Base Asset Volume',
@@ -98,8 +90,10 @@ class TradingSymbolProcessor:
             self.df_price = df_price
 
         except Exception as e:
-            print(f"Error getting data for {self.symbol}: {e}")
-            return None
+            error_msg = f"Error getting OI data for {self.symbol}: {str(e)}"
+            print(error_msg)
+            traceback.print_exc()
+            self.df_price = None
 
 
     def _get_oi_data(self):
@@ -108,14 +102,15 @@ class TradingSymbolProcessor:
         else:
             num_candle_hist_oi = NUM_CANDLE_HIST_OI_OTHER
 
-        # get the price data with matched length and period
-        df_price_oi = self.df_price.iloc[-num_candle_hist_oi:]
-
-        # calculate time period, convert to timestamp
-        start_time_oi = int(df_price_oi['Time'].iloc[0].timestamp() * 1000)
-
         # get open interest data
         try:
+
+            # get the price data with matched length and period
+            df_price_oi = self.df_price.iloc[-num_candle_hist_oi:]
+
+            # calculate time period, convert to timestamp
+            start_time_oi = int(df_price_oi['Time'].iloc[0].timestamp() * 1000)
+
             # get the raw open interest data
             oi_data = self.um_futures_client.open_interest_hist(symbol=self.symbol,
                                                                 contractType='PERPETUAL',
@@ -134,18 +129,19 @@ class TradingSymbolProcessor:
 
             # compute the SMA of OI (price already calculated)
             df_oi['SMA'] = talib.SMA(df_oi['sumOpenInterest'], timeperiod=5)
-            df_oi.dropna(inplace=True)
 
             # reset df_price_oi to match the length of df_oi using the same index
             df_price_oi = df_price_oi[df_price_oi['Time'].isin(df_oi['timestamp'])]
 
-            # assert the time stamps are aligned
-            assert df_price_oi['Time'].iloc[0] == df_oi['timestamp'].iloc[0]
-            assert df_price_oi['Time'].iloc[-1] == df_oi['timestamp'].iloc[-1]
+            # save the OI data
+            df_oi.dropna(inplace=True)
+            self.df_oi = df_oi
 
         except Exception as e:
-            print(f"Error getting OI data for {self.symbol}: {e}")
-            return None
+            error_msg = f"Error getting OI data for {self.symbol}: {str(e)}"
+            print(error_msg)
+            traceback.print_exc()
+            self.df_oi = None
 
 
     def _calc_technical_indicators(self):
@@ -171,31 +167,38 @@ class TradingSymbolProcessor:
         self.df_price = df_price
 
     def run_oi_analysis(self):
-        if not self.flag_run_oi_analysis:
-            return  # Skip if OI analysis flag is not set
 
         try:
             valid_lengths = []
+            list_price_change_pct = []
+            list_oi_change_pct = []
 
             for i in range(SEARCH_NUM_CANDLE_MIN, SEARCH_NUM_CANDLE_MAX, SEARCH_NUM_CANDLE_INC):
-                price_change_pct = (self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-i]) / \
-                                   self.df_price['SMA'].iloc[-i] * 100
-                oi_change_pct = (self.df_oi['SMA'].iloc[-1] - self.df_oi['SMA'].iloc[-i]) / self.df_oi['SMA'].iloc[
-                    -i] * 100
+                price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-i])
+                                    / self.df_price['SMA'].iloc[-i] * 100)
+                oi_change_pct = ((self.df_oi['SMA'].iloc[-1] - self.df_oi['SMA'].iloc[-i])
+                                 / self.df_oi['SMA'].iloc[-i] * 100)
 
                 # Condition check based on thresholds
                 if i <= self.short_range_end:
                     if (price_change_pct < self.threshold_price_change_pct_negative_short_term
                             and oi_change_pct > self.threshold_oi_change_pct_positive_short_term):
                         valid_lengths.append(i)
+                        list_price_change_pct.append(price_change_pct)
+                        list_oi_change_pct.append(oi_change_pct)
+
                 elif i <= self.mid_range_end:
                     if (price_change_pct < self.threshold_price_change_pct_negative_mid_term
                             and oi_change_pct > self.threshold_oi_change_pct_positive_mid_term):
                         valid_lengths.append(i)
+                        list_price_change_pct.append(price_change_pct)
+                        list_oi_change_pct.append(oi_change_pct)
                 else:
                     if (price_change_pct < self.threshold_price_change_pct_negative
                             and oi_change_pct > self.threshold_oi_change_pct_positive):
                         valid_lengths.append(i)
+                        list_price_change_pct.append(price_change_pct)
+                        list_oi_change_pct.append(oi_change_pct)
 
             if len(valid_lengths) > 3:
                 criteria_ranges = [
@@ -204,21 +207,93 @@ class TradingSymbolProcessor:
                     any(self.mid_range_end <= x <= SEARCH_NUM_CANDLE_MAX for x in valid_lengths)
                 ]
                 if all(criteria_ranges):
+                    # find the maximum OI change and max price drop
+                    max_open_interest_change_pct = max(list_oi_change_pct)
+                    max_price_drop_pct = -min(list_price_change_pct)
+
+                    oi_analysis_results = {
+                        'symbol': self.symbol,
+                        'max_open_interest_change_pct': max_open_interest_change_pct,
+                        'max_price_drop_pct': max_price_drop_pct
+                    }
+
                     # Process the criteria met condition
-                    self.post_oi_alerts()
+                    # self.post_oi_alerts()
+
+                    return oi_analysis_results
 
         except Exception as e:
-            print(f"Error during OI analysis for {self.symbol}: {e}")
+            error_msg = f"Error getting OI data for {self.symbol}: {str(e)}"
+            print(error_msg)
+            traceback.print_exc()
+            return None
 
+# def post_oi_alerts(self):
+    #
+    #     symbol = self.symbol
+    #     interval = self.interval
+    #     df_price_oi = self.df_price_oi
+    #     df_oi = self.df_oi
+    #
+    #
+    #     datetime_now = datetime.datetime.utcnow()
+    #     datetime_now_str = datetime_now.strftime(DATETIME_FORMAT)
+    #
+    #
+    #     # send signal to discord - OI alerts
+    #     message_separator = '-------------------------------------\n'
+    #     message_time = f'时间 {datetime_now_str}\n'
+    #     message_name = f'标的 {symbol}\n'
+    #     message_timescale = f'周期 {interval}\n'
+    #     if arr_open_interest_change_pct < 40:
+    #         message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
+    #     else:
+    #         # if greater than 40, add a green apple emoji to the front
+    #         message_oi_change = f'**涨幅 🍏{arr_open_interest_change_pct}% (OI)**\n'
+    #     message_combined = message_separator + message_time + message_name + message_timescale + message_oi_change
+    #     webhook_discord_oi.post(content=message_combined)
+    #
+    #     if decision_entry_oi:
+    #         message_combined_trading = message_separator + message_time + message_name + message_timescale + message_entry
+    #         webhook_discord_oi_trading.post(content=message_combined_trading)
+    #
+    #     # if generate a plot, send the plot to the channel
+    #     if generate_plot:
+    #
+    #         # check if plot already exists
+    #         if flag_plot_exist:
+    #             pass
+    #         else:
+    #             fig_pattern = generate_combined_chart(df_price_oi, df_oi, symbol, interval)
+    #             fig_name = f'fig_pattern_{symbol}_{interval}.png'
+    #             fig_pattern.write_image(fig_name)
+    #
+    #         # now send the plot
+    #         webhook_discord_oi.post(
+    #             file={
+    #                 "file1": open(fig_name, "rb"),
+    #             },
+    #         )
+    #
+    #         if decision_entry_oi:
+    #             webhook_discord_oi_trading.post(
+    #                 file={
+    #                     "file1": open(fig_name, "rb"),
+    #                 },
+    #             )
+    #
+    #         # reset plot status
+    #         os.remove(fig_name)
+    #         flag_plot_exist = False
+    #
 
 
     """ This is the main function that will be called for each symbol."""
     def run(self):
-
         self._get_price_data()
         self._calc_technical_indicators()
         self._get_oi_data()
-        self.run_oi_analysis()
+        return self.run_oi_analysis()
 
 
 
