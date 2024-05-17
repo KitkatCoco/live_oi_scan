@@ -1,18 +1,26 @@
-SMA_length_price = 3
-SMA_length_oi = 3
-num_candle_hist_price = 200
-num_candle_hist_oi = 50
-search_num_candle_min = 2
-search_num_candle_max = 15
-search_num_candle_inc = 1
-generate_plot = True
+# Simple Moving Average lengths
+SMA_LENGTH_PRICE = 3
+SMA_LENGTH_OI = 3
 
-### Analysis selections
-flag_analysis_oi = True
-flag_analysis_pa = True
+# Historical data retrieval settings
+NUM_CANDLE_HIST_PRICE = 1000
+NUM_CANDLE_HIST_OI_OTHER = 50
+NUM_CANDLE_HIST_OI_1D = 29
 
-### Technical Analysis Parameters
-RSI_oversold = 30
-RSI_overbought = 70
-pinbar_body_ATR_thres_multiplier = 0.5
-Vol_MA_thres_multiplier = 1
+# Search parameters for analysis
+SEARCH_NUM_CANDLE_MIN = 2
+SEARCH_NUM_CANDLE_MAX = 15
+SEARCH_NUM_CANDLE_INC = 1
+
+# Plot generation flag
+GENERATE_PLOT = True
+
+# Flags for different types of analysis
+FLAG_ANALYSIS_OI = True
+FLAG_ANALYSIS_PA = True
+
+# Technical analysis parameters
+RSI_OVERSOLD = 30
+RSI_OVERBOUGHT = 70
+PINBAR_BODY_ATR_THRES_MULTIPLIER = 0.5
+VOL_MA_THRES_MULTIPLIER = 1
