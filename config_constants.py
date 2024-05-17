@@ -1,5 +1,3 @@
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S+00:00"
-
 dict_interval_duration_ms = {
     '5m':    300000,
     '15m':   900000,

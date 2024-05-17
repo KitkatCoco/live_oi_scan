@@ -10,8 +10,12 @@ import pickle
 import talib
 from binance.um_futures import UMFutures
 import plotly.graph_objects as go
+import plotly.express as px
 from plotly.subplots import make_subplots
 import pickle
+
+from config_plots import *
+from config_formatting import *
 
 def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
 
@@ -85,5 +89,68 @@ def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
 
     # remove legends
     fig.update_layout(showlegend=False)
+
+    return fig
+
+def plot_oi_analysis(df_oi_analysis, interval):
+    """
+    Plots a detailed scatter chart of Open Interest Change vs. Price Drop for trading symbols,
+    with grid lines and enhanced font sizes for improved readability.
+
+    Parameters:
+        df_oi_analysis (pd.DataFrame): DataFrame containing the columns 'symbol',
+                                       'max_open_interest_change_pct', and 'max_price_drop_pct'.
+
+    Returns:
+        fig (plotly.graph_objects.Figure): The Plotly figure object.
+    """
+    # Constants for axes limits
+    max_limits = {
+        '1h': (MAX_PRICE_DROP_PCT_1H, MAX_OI_INCREASE_PCT_1H),
+        '4h': (MAX_PRICE_DROP_PCT_4H, MAX_OI_INCREASE_PCT_4H),
+        '12h': (MAX_PRICE_DROP_PCT_12H, MAX_OI_INCREASE_PCT_12H),
+    }
+    max_x, max_y = max_limits.get(interval, (100, 100))  # Default max limits
+
+    # Clip values exceeding the maximum limits
+    df_oi_analysis['max_price_drop_pct'] = df_oi_analysis['max_price_drop_pct'].clip(upper=max_x)
+    df_oi_analysis['max_open_interest_change_pct'] = df_oi_analysis['max_open_interest_change_pct'].clip(upper=max_y)
+
+    # get rid of the 'USDT' in the symbol
+    df_oi_analysis['symbol'] = df_oi_analysis['symbol'].str.replace('USDT', '')
+
+    # Creating the scatter plot
+    fig = px.scatter(df_oi_analysis,
+                     x='max_price_drop_pct',
+                     y='max_open_interest_change_pct',
+                     text='symbol',
+                     labels={
+                         "max_price_drop_pct": "Max Price Drop (%)",
+                         "max_open_interest_change_pct": "Max Open Interest Change (%)"
+                     },
+                     title="")
+
+    # Update traces and layout for detailed display
+    fig.update_traces(textposition='top center', marker=dict(size=8), textfont=dict(size=14))
+    fig.update_layout(
+        xaxis=dict(
+            title='Max Price Drop (%)',
+            range=[0, max_x],
+            showgrid=True,
+            gridcolor='LightGray',
+            title_font=dict(size=18),
+            tickfont=dict(size=14)
+        ),
+        yaxis=dict(
+            title='Max Open Interest Change (%)',
+            range=[0, max_y],
+            showgrid=True,
+            gridcolor='LightGray',
+            title_font=dict(size=18),
+            tickfont=dict(size=14)
+        ),
+        margin=dict(l=10, r=10, t=20, b=20),
+        showlegend=False
+    )
 
     return fig

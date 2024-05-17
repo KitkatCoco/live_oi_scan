@@ -21,6 +21,7 @@ class TradingSymbolProcessor:
         self._setup_static_parameters()
         self._setup_current_timestamp()
 
+
     def setup_for_new_symbol(self, symbol):
         # This method resets and initializes everything necessary for a new symbol
         self.symbol = symbol
@@ -42,11 +43,13 @@ class TradingSymbolProcessor:
         self.threshold_oi_change_pct_positive_short_term = self.threshold_oi_change_pct_positive / 3
         self.threshold_oi_change_pct_positive_mid_term = self.threshold_oi_change_pct_positive * 2 / 3
 
+
     def _setup_webhooks(self):
         # Setup Discord webhooks for notifications
         self.webhook_discord_oi = Discord(url=dict_dc_webhook_oi[self.interval])
         self.webhook_discord_oi_trading = Discord(url=dict_dc_webhook_oi_trading_signal[self.interval])
         self.webhook_discord_pa = Discord(url=dict_dc_webhook_pa[self.interval])
+
 
     def _setup_current_timestamp(self):
         current_time = int(time.time() * 1000)
@@ -290,10 +293,17 @@ class TradingSymbolProcessor:
 
     """ This is the main function that will be called for each symbol."""
     def run(self):
+        dict_results = {}
         self._get_price_data()
         self._calc_technical_indicators()
+
+        # OI analysis
         self._get_oi_data()
-        return self.run_oi_analysis()
+        results_oi_analysis = self.run_oi_analysis()
+        dict_results['oi_analysis'] = results_oi_analysis
+
+
+        return dict_results
 
 
 
