@@ -10,6 +10,7 @@ import traceback
 
 from config_params_market_analysis import *
 from config_constants import *
+from config_binance_api import *
 
 @sleep_and_retry
 @limits(calls=1, period=2)  # 2 requests per second
@@ -26,7 +27,7 @@ class DataParser:
                  num_1min_candle_preprocess=NUM_1MIN_CANDLE_PREPROCESS):
         self.symbol = symbol
         self.interval_basic = interval_basic
-        self.client = Client()
+        self.client = Client(api_key=API_KEY, api_secret=API_SECRET)
         self.num_1min_candle_preprocess = num_1min_candle_preprocess
 
         # Download and clean data
