@@ -1,0 +1,9 @@
+# Simple Moving Average lengths
+SMA_LENGTH_PRICE = 3
+SMA_LENGTH_OI = 3
+
+# Historical data retrieval settings
+# NUM_1MIN_CANDLE_PREPROCESS = 20000
+NUM_1MIN_CANDLE_PREPROCESS = 10000
+NUM_1MIN_CANDLE_ANALYLSIS = 2880
+

@@ -106,7 +106,7 @@ def post_processing_pa(results_pa, interval):
         symbols_str = '做多关注: ' + ' '.join(symbols_long) + '\n' + '做空关注: ' + ' '.join(symbols_short)
 
         webhook_discord_pa.post(
-            content=f"{interval}级别{symbols_str}",
+            content=f"{interval}级别\n{symbols_str}",
             file={
                 "file1": open(fig_name, "rb"),
             },
@@ -125,12 +125,14 @@ if __name__ == '__main__':
     # interval = '4h'
     # interval = '12h'
 
-
     # timer
     start_time = time.time()
 
     # run the main function
-    aggregated_result = main(interval)
+    main(interval)
 
-    # timer
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # report the duration, round to 1 decimal places
+    webhook_discord_oi = Discord(url=dict_dc_webhook_oi[interval])
+    webhook_discord_oi.post(
+        content=f"--- {time.time() - start_time:.1f} seconds ---"
+    )

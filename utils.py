@@ -198,7 +198,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
-            title='Pinbar length',
+            title='Price Action Strength',
             range=[PINBAR_BODY_ATR_THRES_MULTIPLIER - 0.1, max_x],
             showgrid=True,
             gridcolor='LightGray',
@@ -221,5 +221,80 @@ def plot_pa_analysis(df_pa_analysis, interval):
     # Add horizontal lines for RSI oversold and overbought levels
     fig.add_hline(y=RSI_OVERSOLD, line_dash="dash", line_color="gray")
     fig.add_hline(y=RSI_OVERBOUGHT, line_dash="dash", line_color="gray")
+
+    return fig
+
+
+def plot_rs_analysis(df_rs_analysis):
+    """
+    Plots a scatter chart of rsp vs. rsn for trading symbols, with a diagonal line indicating equal rsp and rsn,
+    and ensuring the plot has an equal aspect ratio.
+
+    Parameters:
+        df_rs_analysis (pd.DataFrame): DataFrame containing the columns 'symbol', 'rsp', and 'rsn'.
+
+    Returns:
+        fig (plotly.graph_objects.Figure): The Plotly figure object.
+    """
+
+    # Removing 'USDT' from the symbol names
+    df_rs_analysis['symbol'] = df_rs_analysis['symbol'].str.replace('USDT', '')
+
+    # Clip the rsp and rsn values at ±2
+    df_rs_analysis['rsp_clipped'] = df_rs_analysis['rsp'].clip(-2, 2)
+    df_rs_analysis['rsn_clipped'] = df_rs_analysis['rsn'].clip(-2, 2)
+
+    # Creating the scatter plot
+    fig = go.Figure()
+
+    # Add scatter trace for data points
+    fig.add_trace(go.Scatter(
+        x=df_rs_analysis['rsn_clipped'],
+        y=df_rs_analysis['rsp_clipped'],
+        mode='markers+text',
+        text=df_rs_analysis['symbol'],
+        textposition='top center',
+        marker=dict(size=6),
+    ))
+
+    # Add diagonal line
+    fig.add_trace(go.Scatter(
+        x=[-2, 2], y=[-2, 2],
+        mode='lines',
+        line=dict(color='black', width=2)
+    ))
+
+    # Update layout for detailed display
+    fig.update_layout(
+        xaxis=dict(
+            title='Relative Strength Negative',
+            range=[-2, 2],  # slightly beyond ±2 for better visibility
+            showgrid=True,
+            gridcolor='LightGray',
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='Black',
+            title_font=dict(size=16),
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            title='Relative Strength Positive',
+            range=[-2, 2],  # slightly beyond ±2 for better visibility
+            showgrid=True,
+            gridcolor='LightGray',
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='Black',
+            title_font=dict(size=16),
+            tickfont=dict(size=12),
+            scaleanchor="x",
+            scaleratio=1,
+        ),
+        plot_bgcolor='white',
+        margin=dict(l=20, r=20, t=20, b=20),
+        showlegend=False,
+        width=600,  # Square figure size: width = height
+        height=600
+    )
 
     return fig

@@ -21,3 +21,7 @@ dict_dc_webhook_oi_trading_signal = {
     '4h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
     '12h': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
 }
+
+dict_dc_webhook_rs = {
+    '1h': 'https://discord.com/api/webhooks/1241478762386817034/sQqJ5UxcLvP7QbLtFPrJkiIVevMNlGzGy18TKgKGwNHnoLLY7xBOWRfjgzQdm4MtWxa9',
+}
