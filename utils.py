@@ -155,3 +155,74 @@ def plot_oi_analysis(df_oi_analysis, interval):
     )
 
     return fig
+
+
+def plot_pa_analysis(df_pa_analysis, interval):
+    """
+    Plots a scatter chart of RSI vs. Pin Length Ratio for trading symbols,
+    colored by trading direction (Long in green, Short or others in red),
+    and includes horizontal lines for RSI oversold and overbought thresholds.
+
+    Parameters:
+        df_pa_analysis (pd.DataFrame): DataFrame containing the columns 'symbol',
+                                       'RSI', 'pin_length_ratio', and 'direction'.
+
+    Returns:
+        fig (plotly.graph_objects.Figure): The Plotly figure object.
+    """
+    # Constants for axes limits
+    max_x = MAX_PINBAR_RATIO_ATR  # Max ratio of Pinbar length to ATR
+    max_y = 100  # RSI ranges from 0 to 100
+
+    # Constants for RSI thresholds
+    RSI_OVERSOLD = 30
+    RSI_OVERBOUGHT = 70
+
+    # Removing 'USDT' from the symbol names
+    df_pa_analysis['symbol'] = df_pa_analysis['symbol'].str.replace('USDT', '')
+
+    # Mapping colors based on the 'direction' column
+    color_map = {'Long': 'green', 'Short': 'red'}
+    df_pa_analysis['color'] = df_pa_analysis['direction'].map(color_map).fillna('red')  # Default to red if not Long or Short
+
+    # Creating the scatter plot
+    fig = px.scatter(df_pa_analysis,
+                     x='pin_length_ratio',
+                     y='RSI',
+                     text='symbol',
+                     color='color',
+                     labels={
+                         "pin_length_ratio": "Pin Length Ratio",
+                         "RSI": "RSI"
+                     },
+                     title="RSI vs. Pin Length Ratio Analysis")
+
+    # Update traces and layout for detailed display
+    fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
+    fig.update_layout(
+        xaxis=dict(
+            title='Pin Length Ratio',
+            range=[0, max_x],
+            showgrid=True,
+            gridcolor='LightGray',
+            title_font=dict(size=18),
+            tickfont=dict(size=14)
+        ),
+        yaxis=dict(
+            title='RSI',
+            range=[0, max_y],
+            showgrid=True,
+            gridcolor='LightGray',
+            title_font=dict(size=18),
+            tickfont=dict(size=14)
+        ),
+        margin=dict(l=10, r=10, t=20, b=20),
+        showlegend=False,
+        coloraxis_showscale=False  # Hides the color scale legend
+    )
+
+    # Add horizontal lines for RSI oversold and overbought levels
+    fig.add_hline(y=RSI_OVERSOLD, line_dash="dash", line_color="gray")
+    fig.add_hline(y=RSI_OVERBOUGHT, line_dash="dash", line_color="gray")
+
+    return fig

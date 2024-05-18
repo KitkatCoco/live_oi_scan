@@ -219,8 +219,7 @@ if __name__ == '__main__':
                     if generate_plot:
 
                         # check if plot already exists
-                        if flag_plot_exist:
-                            pass
+                        if flag_plot_exist:                            pass
                         else:
                             fig_pattern = generate_combined_chart(df_price_oi, df_oi, symbol, interval)
                             fig_name = f'fig_pattern_{symbol}_{interval}.png'

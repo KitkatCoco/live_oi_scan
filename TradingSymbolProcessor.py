@@ -10,6 +10,7 @@ import traceback
 from config_constants import *
 from config_study_params import *
 from config_discord import *
+from config_thresholds import *
 
 from utils import *
 
@@ -169,6 +170,78 @@ class TradingSymbolProcessor:
         df_price.dropna(inplace=True)
         self.df_price = df_price
 
+
+    def run_pa_analysis(self):
+
+        msg_rsi = ''
+        msg_pinbar = ''
+        # msg_poway = ''
+
+        try:
+            # get the current parameter values
+            RSI_cur = self.df_price['RSI'].iloc[-1]
+            ATR_cur = self.df_price['ATR'].iloc[-1]
+            Vol_cur = float(self.df_price['Volume'].iloc[-1])
+            Vol_MA_cur = self.df_price['Volume_MA'].iloc[-1]
+            lower_pinbar_cur = self.df_price['lower_pinbar_length'].iloc[-1]
+            upper_pinbar_cur = self.df_price['upper_pinbar_length'].iloc[-1]
+            cur_price_open = self.df_price['Open'].iloc[-1]
+            cur_price_close = self.df_price['Close'].iloc[-1]
+            cur_price_low = self.df_price['Low'].iloc[-1]
+            cur_price_high = self.df_price['High'].iloc[-1]
+
+            # RSI signal
+            is_rsi_oversold = False
+            if RSI_cur <= RSI_OVERSOLD:
+                is_rsi_oversold = True
+                msg_rsi = f'RSI超卖<{RSI_OVERSOLD}'
+            if RSI_cur >= RSI_OVERBOUGHT:
+                is_rsi_overbought = True
+                msg_rsi = f'RSI超买>{RSI_OVERBOUGHT}'
+
+            # Pinbar signal
+            is_bullish_pinbar = False
+            if lower_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur and \
+                    cur_price_close > cur_price_open:
+                is_bullish_pinbar = True
+                msg_pinbar = '看涨针线'
+            if upper_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur and \
+                    cur_price_close < cur_price_open:
+                is_bearish_pinbar = True
+                msg_pinbar = '看跌针线'
+
+            # check if the last candle's low is the lowest in all last num_candle_hist_oi candles
+            is_lowest_low = False
+            num_candle_hl_check = min(POWAY_NUM_CANDLE_LOOKBACK, len(self.df_price))
+            if cur_price_low == self.df_price['Low'].iloc[-POWAY_NUM_CANDLE_LOOKBACK:].min():
+                is_lowest_low = True
+                # msg_poway = '价格新低'
+            if cur_price_high == self.df_price['High'].iloc[-POWAY_NUM_CANDLE_LOOKBACK:].max():
+                is_highest_high = True
+                # msg_poway = '价格新高'
+
+            # Only all conditions are met, return the results
+            if is_rsi_oversold and is_bullish_pinbar and is_lowest_low:
+                return {'symbol': self.symbol,
+                        'direction': 'Long',
+                        'RSI': RSI_cur,
+                        'pin_ratio': lower_pinbar_cur / ATR_cur,
+                        }
+            elif is_rsi_overbought and is_bearish_pinbar and is_highest_high:
+                return {'symbol': self.symbol,
+                        'direction': 'Short',
+                        'RSI': RSI_cur,
+                        'pin_ratio': upper_pinbar_cur / ATR_cur,
+                        }
+            else:
+                return None
+
+        except Exception as e:
+            error_msg = f"Error getting PA data for {self.symbol}: {str(e)}"
+            print(error_msg)
+            traceback.print_exc()
+            return None
+
     def run_oi_analysis(self):
 
         try:
@@ -302,6 +375,9 @@ class TradingSymbolProcessor:
         results_oi_analysis = self.run_oi_analysis()
         dict_results['oi_analysis'] = results_oi_analysis
 
+        # PA analysis
+        results_pa_analysis = self.run_pa_analysis()
+        dict_results['pa_analysis'] = results_pa_analysis
 
         return dict_results
 
