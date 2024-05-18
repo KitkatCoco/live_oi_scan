@@ -125,6 +125,10 @@ class TradingSymbolProcessor:
 
             # Process open interest data
             df_oi = pd.DataFrame(oi_data)
+
+            if self.symbol == 'AUDIOUSDT':
+                print('pause here')
+
             df_oi.loc[:, 'sumOpenInterest'] = df_oi['sumOpenInterest'].astype(float)
             df_oi.loc[:, 'timestamp'] = pd.to_datetime(df_oi['timestamp'], unit='ms')
 
@@ -192,6 +196,7 @@ class TradingSymbolProcessor:
 
             # RSI signal
             is_rsi_oversold = False
+            is_rsi_overbought = False
             if RSI_cur <= RSI_OVERSOLD:
                 is_rsi_oversold = True
                 msg_rsi = f'RSI超卖<{RSI_OVERSOLD}'
@@ -201,6 +206,7 @@ class TradingSymbolProcessor:
 
             # Pinbar signal
             is_bullish_pinbar = False
+            is_bearish_pinbar = False
             if lower_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur and \
                     cur_price_close > cur_price_open:
                 is_bullish_pinbar = True
@@ -212,6 +218,7 @@ class TradingSymbolProcessor:
 
             # check if the last candle's low is the lowest in all last num_candle_hist_oi candles
             is_lowest_low = False
+            is_highest_high = False
             num_candle_hl_check = min(POWAY_NUM_CANDLE_LOOKBACK, len(self.df_price))
             if cur_price_low == self.df_price['Low'].iloc[-POWAY_NUM_CANDLE_LOOKBACK:].min():
                 is_lowest_low = True

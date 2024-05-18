@@ -63,7 +63,7 @@ def post_processing_oi(results_oi, interval):
         fig_oi_analysis.write_image(fig_name)
         df_oi_analysis_sorted = df_oi_analysis.sort_values(by="max_open_interest_change_pct", ascending=False)
         symbols = df_oi_analysis_sorted['symbol'].tolist()
-        symbols_str = '关注名单: ' + ' '.join(symbols)
+        symbols_str = '初选名单: ' + ' '.join(symbols)
         webhook_discord_oi.post(
             content=f"{interval}级别{symbols_str}",
             file={
@@ -91,12 +91,12 @@ def post_processing_pa(results_pa, interval):
         fig_pa_analysis.write_image(fig_name)
 
         # write all the symbol names to two separate lists, one for oversold and one for overbought
-        df_pa_analysis_long = df_pa_analysis[df_pa_analysis['rsi'] < RSI_OVERSOLD]
-        df_pa_analysis_short = df_pa_analysis[df_pa_analysis['rsi'] > RSI_OVERBOUGHT]
+        df_pa_analysis_long = df_pa_analysis[df_pa_analysis['RSI'] < RSI_OVERSOLD]
+        df_pa_analysis_short = df_pa_analysis[df_pa_analysis['RSI'] > RSI_OVERBOUGHT]
 
         # sort the symbols by RSI
-        df_pa_analysis_long = df_pa_analysis_long.sort_values(by="pin_length_ratio", ascending=False)
-        df_pa_analysis_short = df_pa_analysis_short.sort_values(by="pin_length_ratio", ascending=False)
+        df_pa_analysis_long = df_pa_analysis_long.sort_values(by="pin_ratio", ascending=False)
+        df_pa_analysis_short = df_pa_analysis_short.sort_values(by="pin_ratio", ascending=False)
 
         # get the symbol names
         symbols_long = df_pa_analysis_long['symbol'].tolist()
@@ -121,9 +121,9 @@ if __name__ == '__main__':
 
     # debug
     # interval = '15m'
+    # interval = '1h'
     # interval = '4h'
     # interval = '12h'
-    # interval = '1h'
 
 
     # timer

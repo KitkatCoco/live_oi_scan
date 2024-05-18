@@ -27,9 +27,11 @@ except requests.exceptions.RequestException as e:
 
 
 # get rid of some symbols from the exclusion list SCUSDT
-list_exclusion = ['BTCUSDT', 'ETHUSDT', 'ANTUSDT', 'BLUEBIRDUSDT', 'BTCDOMUSDT', 'BTCSTUSDT', 'BTSUSDT', 'COCOSUSDT',
-                  'CVCUSDT', 'CTKUSDT', 'DGBUSDT', 'FOOTBALLUSDT', 'HNTUSDT', 'FTTUSDT', 'RAYUSDT', 'SRMUSDT',
-                  'STRAXUSDT', 'TOMOUSDT', 'USDCUSDT', 'SCUSDT']
+list_exclusion = ['BTCUSDT', 'ETHUSDT', 'ANTUSDT', 'AUDIOUSDT','BLUEBIRDUSDT', 'BTCDOMUSDT', 'BTCSTUSDT', 'BTSUSDT',
+                  'COCOSUSDT', 'CVCUSDT', 'CTKUSDT', 'DGBUSDT', 'FOOTBALLUSDT', 'HNTUSDT', 'FTTUSDT', 'RAYUSDT',
+                  'SRMUSDT', 'STRAXUSDT', 'TOMOUSDT', 'USDCUSDT', 'SCUSDT', 'CVXUSDT', 'IDEXUSDT', 'GLMRUSDT',
+                    'MBLUSDT', 'MDTUSDT', 'SLPUSDT', 'STPTUSDT', 'SNTUSDT', 'RADUSDT']
+
 for symbol in list_exclusion:
     list_symbols.remove(symbol)
 

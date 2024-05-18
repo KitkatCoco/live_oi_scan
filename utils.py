@@ -16,6 +16,7 @@ import pickle
 
 from config_plots import *
 from config_formatting import *
+from config_study_params import *
 
 def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
 
@@ -174,10 +175,6 @@ def plot_pa_analysis(df_pa_analysis, interval):
     max_x = MAX_PINBAR_RATIO_ATR  # Max ratio of Pinbar length to ATR
     max_y = 100  # RSI ranges from 0 to 100
 
-    # Constants for RSI thresholds
-    RSI_OVERSOLD = 30
-    RSI_OVERBOUGHT = 70
-
     # Removing 'USDT' from the symbol names
     df_pa_analysis['symbol'] = df_pa_analysis['symbol'].str.replace('USDT', '')
 
@@ -187,7 +184,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
 
     # Creating the scatter plot
     fig = px.scatter(df_pa_analysis,
-                     x='pin_length_ratio',
+                     x='pin_ratio',
                      y='RSI',
                      text='symbol',
                      color='color',
@@ -195,14 +192,14 @@ def plot_pa_analysis(df_pa_analysis, interval):
                          "pin_length_ratio": "Pin Length Ratio",
                          "RSI": "RSI"
                      },
-                     title="RSI vs. Pin Length Ratio Analysis")
+                     title="")
 
     # Update traces and layout for detailed display
     fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
-            title='Pin Length Ratio',
-            range=[0, max_x],
+            title='Pinbar length',
+            range=[PINBAR_BODY_ATR_THRES_MULTIPLIER - 0.1, max_x],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
