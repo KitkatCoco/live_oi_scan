@@ -124,6 +124,8 @@ if __name__ == '__main__':
     # interval = '1h'
     # interval = '4h'
     # interval = '12h'
+    # interval = '1h'
+
 
     # timer
     start_time = time.time()
@@ -136,3 +138,6 @@ if __name__ == '__main__':
     webhook_discord_oi.post(
         content=f"--- {time.time() - start_time:.1f} seconds ---"
     )
+
+    # timer
+    print("--- %s seconds ---" % (time.time() - start_time))
