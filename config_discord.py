@@ -19,7 +19,9 @@ dict_dc_webhook_pa = {
 
 dict_dc_webhook_oi_trading_signal = {
     '15m': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
+    '30m': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
     '1h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
+    '2h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
     '4h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
     '12h': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
 }
