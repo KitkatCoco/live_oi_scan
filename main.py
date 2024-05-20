@@ -121,7 +121,9 @@ if __name__ == '__main__':
 
     # debug
     # interval = '15m'
+    # interval = '30m'
     # interval = '1h'
+    # interval = '2h'
     # interval = '4h'
     # interval = '12h'
     # interval = '1h'

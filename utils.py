@@ -166,7 +166,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
 
     Parameters:
         df_pa_analysis (pd.DataFrame): DataFrame containing the columns 'symbol',
-                                       'RSI', 'pin_length_ratio', and 'direction'.
+                                       'RSI', 'pin_ratio', and 'direction'.
 
     Returns:
         fig (plotly.graph_objects.Figure): The Plotly figure object.
@@ -187,9 +187,9 @@ def plot_pa_analysis(df_pa_analysis, interval):
                      x='pin_ratio',
                      y='RSI',
                      text='symbol',
-                     color='color',
+                     color='pin_ratio',  # Use 'pin_ratio' for color mapping
                      labels={
-                         "pin_length_ratio": "Pin Length Ratio",
+                         "pin_ratio": "PA strength",
                          "RSI": "RSI"
                      },
                      title="")
@@ -198,8 +198,8 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
-            title='Price Action Strength',
-            range=[PINBAR_BODY_ATR_THRES_MULTIPLIER - 0.1, max_x],
+            title='PA strength',
+            range=[0, max_x],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
@@ -208,8 +208,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
         yaxis=dict(
             title='RSI',
             range=[0, max_y],
-            showgrid=True,
-            gridcolor='LightGray',
+            showgrid=False,  # Disable horizontal grid lines
             title_font=dict(size=18),
             tickfont=dict(size=14)
         ),
@@ -222,7 +221,29 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.add_hline(y=RSI_OVERSOLD, line_dash="dash", line_color="gray")
     fig.add_hline(y=RSI_OVERBOUGHT, line_dash="dash", line_color="gray")
 
+    # Add background colors for different y-axis ranges
+    fig.add_shape(type="rect", x0=0, y0=0, x1=max_x, y1=20,
+                  fillcolor="green", opacity=0.2, layer="below", line_width=0)
+    fig.add_shape(type="rect", x0=0, y0=20, x1=max_x, y1=40,
+                  fillcolor="lightgreen", opacity=0.2, layer="below", line_width=0)
+    fig.add_shape(type="rect", x0=0, y0=40, x1=max_x, y1=60,
+                  fillcolor="gray", opacity=0.2, layer="below", line_width=0)
+    fig.add_shape(type="rect", x0=0, y0=60, x1=max_x, y1=80,
+                  fillcolor="pink", opacity=0.2, layer="below", line_width=0)
+    fig.add_shape(type="rect", x0=0, y0=80, x1=max_x, y1=100,
+                  fillcolor="red", opacity=0.2, layer="below", line_width=0)
+
+    # Add color transition for markers from left to right
+    fig.update_traces(marker=dict(
+        color=df_pa_analysis['pin_ratio'],
+        colorscale="Viridis",  # Change the colorscale to "Viridis" for a gradient effect
+        showscale=True
+    ))
+
+    fig.show()
+
     return fig
+
 
 
 def plot_rs_analysis(df_rs_analysis):
