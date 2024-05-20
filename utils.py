@@ -187,7 +187,6 @@ def plot_pa_analysis(df_pa_analysis, interval):
                      x='pin_ratio',
                      y='RSI',
                      text='symbol',
-                     color_discrete_sequence=['black'],  # Set all markers to black
                      labels={
                          "pin_ratio": "PA strength",
                          "RSI": "RSI"
@@ -233,7 +232,6 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.add_shape(type="rect", x0=0, y0=80, x1=max_x, y1=100,
                   fillcolor="red", opacity=0.2, layer="below", line_width=0)
 
-    fig.show()
 
     return fig
 
