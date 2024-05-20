@@ -24,9 +24,14 @@ def calc_normalizer(symbol):
     return norm_factor
 
 
-
 if __name__ == '__main__':
+
+    # start the timer
+    t0 = time.time()
+
+    # load all symbols
     all_symbols = load_symbols()
+    all_symbols.append('BTCUSDT')
 
     # create a list to save the normalizer data for each symbol and its normalizer value
     norm_factors = []
@@ -40,5 +45,16 @@ if __name__ == '__main__':
 
     # Save the normalizer factors to a CSV file
     df_norm_factors = pd.DataFrame(norm_factors)
-    df_norm_factors.to_csv('candle_range_1min_norm_factors.csv', index=False)
+    df_norm_factors.to_csv('config_candle_range_1min_norm_factors.csv', index=False)
 
+    # Save the normalizer factors to a python file as a dictionary
+    norm_factors_dict = {row['symbol']: row['norm_factor'] for _, row in df_norm_factors.iterrows()}
+    with open('config_candle_range_1min_norm_factors.py', 'w') as f:
+        f.write('NORM_FACTORS = {\n')
+        for symbol, norm_factor in norm_factors_dict.items():
+            f.write(f"    '{symbol}': {norm_factor},\n")
+        f.write('}\n')
+
+    # stop the timer
+    t1 = time.time()
+    print(f"Processed all symbols in {t1 - t0:.1f} seconds")

@@ -27,8 +27,8 @@ max_limits_oi_plot = {
     '12h': (MAX_PRICE_DROP_PCT_12H, MAX_OI_INCREASE_PCT_12H),
 }
 
-
-X_MIN_RS_PLOT = -1
-X_MAX_RS_PLOT = 4
+# plot for the RS analysis
+X_MIN_RS_PLOT = -0.5
+X_MAX_RS_PLOT = 3
 Y_MIN_RS_PLOT = X_MIN_RS_PLOT
 Y_MAX_RS_PLOT = X_MAX_RS_PLOT

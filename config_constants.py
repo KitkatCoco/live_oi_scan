@@ -1,3 +1,5 @@
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S+00:00"
+
 dict_interval_duration_ms = {
     '1m':     60000,
     '5m':    300000,

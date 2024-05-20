@@ -11,6 +11,7 @@ import traceback
 from config_params_market_analysis import *
 from config_constants import *
 from config_binance_api import *
+from config_candle_range_1min_norm_factors import NORM_FACTORS
 
 @sleep_and_retry
 @limits(calls=1, period=2)  # 2 requests per second
@@ -24,55 +25,32 @@ def safe_api_call(client, symbol, interval, start_time):
 class DataParser:
     def __init__(self, symbol,
                  interval_basic='1m',
+                 mode='complete',    # mode - complete or live
                  num_1min_candle_preprocess=NUM_1MIN_CANDLE_PREPROCESS):
         self.symbol = symbol
         self.interval_basic = interval_basic
         self.client = Client(api_key=API_KEY, api_secret=API_SECRET)
         self.num_1min_candle_preprocess = num_1min_candle_preprocess
 
-        # Download and clean data
-        self._setup_current_timestamp()
-        self._get_price_data()
-        self._calc_technical_indicators()
+        # default - for long history data analysis for range characterization
+        if mode == 'complete':
+            self._setup_current_timestamp()
+            self._get_price_data()
+            self._calc_technical_indicators()
+        # for live data analysis - only download recent data, use pre-saved norm factors
+        elif mode == 'live':
+            num_1min_candle_analysis = NUM_1MIN_CANDLE_ANALYLSIS + 300
+            self._setup_current_timestamp(num_candles=num_1min_candle_analysis)
+            self._get_price_data()
+            self._calc_technical_indicators_live()
 
-        # Normalizer
-
-
-    def _setup_current_timestamp(self):
+    def _setup_current_timestamp(self, num_candles=NUM_1MIN_CANDLE_PREPROCESS):
         current_time = int(time.time() * 1000)
         self.interval_duration_ms = dict_interval_duration_ms[self.interval_basic]
         self.current_time_recent_close = current_time - (current_time % self.interval_duration_ms)
         self.current_time = current_time
         self.start_time_price = (self.current_time_recent_close
-                                 - NUM_1MIN_CANDLE_PREPROCESS * dict_interval_duration_ms[self.interval_basic])
-
-    def _calc_technical_indicators(self):
-        df_price = self.df_price
-
-        # Calculate the intra-candle change (percentage) in price
-        df_price['Price Change'] = (df_price['Close'] - df_price['Open']) / df_price['Open'] * 100
-
-        # Create two new arrays (not columns) to save the positive and negative price change values
-        arr_price_change_positive = np.where(df_price['Price Change'] > 0, df_price['Price Change'], 0)
-        arr_price_change_negative = np.where(df_price['Price Change'] < 0, df_price['Price Change'], 0)
-
-        arr_price_change_positive = arr_price_change_positive[arr_price_change_positive > 0]
-        arr_price_change_negative = -arr_price_change_negative[arr_price_change_negative < 0]
-
-        # Calculate the 90% quantile of the positive and negative price change values
-        threshold_price_change_positive = np.quantile(arr_price_change_positive, 0.95)
-        threshold_price_change_negative = np.quantile(arr_price_change_negative, 0.95)
-
-        # Get the average of abs values as the normalizing factor
-        norm_factor = np.mean([threshold_price_change_positive, threshold_price_change_negative])
-        self.norm_factor = norm_factor
-
-        # Normalize the price change values
-        df_price['Price Change Normalized'] = df_price['Price Change'] / norm_factor
-
-        # Update the dataframe
-        df_price.dropna(inplace=True)
-        self.df_price = df_price
+                                 - num_candles * dict_interval_duration_ms[self.interval_basic])
 
 
     def _get_price_data(self):
@@ -110,6 +88,53 @@ class DataParser:
             print(error_msg)
             traceback.print_exc()
             self.df_price = None
+
+
+    def _calc_technical_indicators(self):
+        df_price = self.df_price
+
+        # Calculate the intra-candle change (percentage) in price
+        df_price['Price Change'] = (df_price['Close'] - df_price['Open']) / df_price['Open'] * 100
+
+        # Create two new arrays (not columns) to save the positive and negative price change values
+        arr_price_change_positive = np.where(df_price['Price Change'] > 0, df_price['Price Change'], 0)
+        arr_price_change_negative = np.where(df_price['Price Change'] < 0, df_price['Price Change'], 0)
+
+        arr_price_change_positive = arr_price_change_positive[arr_price_change_positive > 0]
+        arr_price_change_negative = -arr_price_change_negative[arr_price_change_negative < 0]
+
+        # Calculate the 90% quantile of the positive and negative price change values
+        threshold_price_change_positive = np.quantile(arr_price_change_positive, 0.95)
+        threshold_price_change_negative = np.quantile(arr_price_change_negative, 0.95)
+
+        # Get the average of abs values as the normalizing factor
+        norm_factor = np.mean([threshold_price_change_positive, threshold_price_change_negative])
+        self.norm_factor = norm_factor
+
+        # Normalize the price change values
+        df_price['Price Change Normalized'] = df_price['Price Change'] / norm_factor
+
+        # Update the dataframe
+        df_price.dropna(inplace=True)
+        self.df_price = df_price
+
+    def _calc_technical_indicators_live(self):
+
+        df_price = self.df_price
+
+        # instead of calculating a long history ranges, use pre-saved values
+        norm_factor = NORM_FACTORS[self.symbol]
+        self.norm_factor = norm_factor
+
+        # Calculate the intra-candle change (percentage) in price
+        df_price['Price Change'] = (df_price['Close'] - df_price['Open']) / df_price['Open'] * 100
+        df_price['Price Change Normalized'] = df_price['Price Change'] / norm_factor
+
+        # Update the dataframe
+        df_price.dropna(inplace=True)
+        self.df_price = df_price
+
+
 
 class SymbolRelativeStrength:
     def __init__(self,

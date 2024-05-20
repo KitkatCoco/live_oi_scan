@@ -243,27 +243,28 @@ def plot_rs_analysis(df_rs_analysis):
     df_rs_analysis['symbol'] = df_rs_analysis['symbol'].str.replace('USDT', '')
 
     # Clip the rsp and rsn values at ±2
-    df_rs_analysis['rsp_clipped'] = df_rs_analysis['rsp'].clip(-2, 2)
-    df_rs_analysis['rsn_clipped'] = df_rs_analysis['rsn'].clip(-2, 2)
+    df_rs_analysis['rsp_clipped'] = df_rs_analysis['rsp'].clip(Y_MIN_RS_PLOT, Y_MAX_RS_PLOT)
+    df_rs_analysis['rsn_clipped'] = df_rs_analysis['rsn'].clip(Y_MIN_RS_PLOT, Y_MAX_RS_PLOT)
 
     # Creating the scatter plot
     fig = go.Figure()
 
-    # Add scatter trace for data points
+    # Add scatter trace for data points, add font size
     fig.add_trace(go.Scatter(
         x=df_rs_analysis['rsn_clipped'],
         y=df_rs_analysis['rsp_clipped'],
         mode='markers+text',
         text=df_rs_analysis['symbol'],
         textposition='top center',
-        marker=dict(size=6),
+        marker=dict(size=4),
+        textfont=dict(size=12)
     ))
 
     # Add diagonal line
     fig.add_trace(go.Scatter(
         x=[X_MIN_RS_PLOT, X_MAX_RS_PLOT], y=[Y_MIN_RS_PLOT, Y_MAX_RS_PLOT],
         mode='lines',
-        line=dict(color='black', width=2)
+        line=dict(color='black', width=1)
     ))
 
     # Update layout for detailed display
@@ -295,8 +296,8 @@ def plot_rs_analysis(df_rs_analysis):
         plot_bgcolor='white',
         margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False,
-        width=900,  # Square figure size: width = height
-        height=900,
+        width=500,  # Square figure size: width = height
+        height=500,
     )
 
     return fig
