@@ -261,7 +261,7 @@ def plot_rs_analysis(df_rs_analysis):
 
     # Add diagonal line
     fig.add_trace(go.Scatter(
-        x=[-2, 2], y=[-2, 2],
+        x=[X_MIN_RS_PLOT, X_MAX_RS_PLOT], y=[Y_MIN_RS_PLOT, Y_MAX_RS_PLOT],
         mode='lines',
         line=dict(color='black', width=2)
     ))
@@ -270,7 +270,7 @@ def plot_rs_analysis(df_rs_analysis):
     fig.update_layout(
         xaxis=dict(
             title='Relative Strength Negative',
-            range=[-2, 2],  # slightly beyond ±2 for better visibility
+            range=[Y_MIN_RS_PLOT, Y_MAX_RS_PLOT],  # slightly beyond ±2 for better visibility
             showgrid=True,
             gridcolor='LightGray',
             zeroline=True,
@@ -281,7 +281,7 @@ def plot_rs_analysis(df_rs_analysis):
         ),
         yaxis=dict(
             title='Relative Strength Positive',
-            range=[-2, 2],  # slightly beyond ±2 for better visibility
+            range=[Y_MIN_RS_PLOT, Y_MAX_RS_PLOT],  # slightly beyond ±2 for better visibility
             showgrid=True,
             gridcolor='LightGray',
             zeroline=True,
@@ -293,10 +293,10 @@ def plot_rs_analysis(df_rs_analysis):
             scaleratio=1,
         ),
         plot_bgcolor='white',
-        margin=dict(l=20, r=20, t=20, b=20),
+        margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False,
-        width=600,  # Square figure size: width = height
-        height=600
+        width=900,  # Square figure size: width = height
+        height=900,
     )
 
     return fig

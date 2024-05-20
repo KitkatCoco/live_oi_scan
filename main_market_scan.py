@@ -19,33 +19,40 @@ def process_symbol(symbol, df_price_btc):
     t0 = time.time()
     print(f"Processing {symbol}")
 
-    # Get the current symbol data
-    parser_cur = DataParser(symbol, '1m')
-    df_price_cur = parser_cur.df_price
+    try:
+        # Get the current symbol data
+        parser_cur = DataParser(symbol, '1m')
+        df_price_cur = parser_cur.df_price
 
-    if df_price_cur is None:
-        print(f"No data available for {symbol}")
-        return None
+        if df_price_cur is None:
+            print(f"No data available for {symbol}")
+            return None
 
-    # Make a copy of the BTC data
-    df_price_btc_copy = df_price_btc.copy()
+        # Make a copy of the BTC data
+        df_price_btc_copy = df_price_btc.copy()
 
-    # Calculate the mutual index
-    mutual_index = df_price_cur.index.intersection(df_price_btc_copy.index)
+        # Calculate the mutual index
+        mutual_index = df_price_cur.index.intersection(df_price_btc_copy.index)
 
-    if mutual_index.empty:
-        print(f"No intersecting data for {symbol} and BTCUSDT")
-        return None
+        if mutual_index.empty:
+            print(f"No intersecting data for {symbol} and BTCUSDT")
+            return None
 
-    # Filter both dataframes to keep only the mutual intersecting rows
-    df_price_cur = df_price_cur.loc[mutual_index]
-    df_price_btc_copy = df_price_btc_copy.loc[mutual_index]
+        # Filter both dataframes to keep only the mutual intersecting rows
+        df_price_cur = df_price_cur.loc[mutual_index]
+        df_price_btc_copy = df_price_btc_copy.loc[mutual_index]
 
-    # Initialize and run the processor
-    processor_mc = SymbolRelativeStrength(symbol=symbol,
-                                          df_price_btc=df_price_btc_copy,
-                                          df_price_cur=df_price_cur)
-    results = processor_mc.run()
+        # Initialize and run the processor
+        processor_mc = SymbolRelativeStrength(symbol=symbol,
+                                              df_price_btc=df_price_btc_copy,
+                                              df_price_cur=df_price_cur)
+        results = processor_mc.run()
+
+    except Exception as e:
+        error_msg = f"Error processing {symbol}: {str(e)}"
+        print(error_msg)
+        results = None
+
     t1 = time.time()
     print(f"Processed {symbol} in {t1 - t0:.1f} seconds")
 
@@ -59,6 +66,8 @@ def load_symbols():
     # Load symbols from a list_symbols.txt file
     with open('list_symbols.txt', 'r') as f:
         all_symbols = f.read().splitlines()
+    #
+    # all_symbols = ['ETHUSDT', 'BNBUSDT', 'DOGEUSDT', 'NEARUSDT', 'UNFIUSDT', 'TRBUSDT', 'SOLUSDT']
     return all_symbols
 
 def main(interval_rs='1h', interval_basic='1m', num_processes=None):
@@ -89,7 +98,7 @@ def post_processing_rs(results_rs, interval_rs):
         return
 
     df_rs_analysis = pd.DataFrame.from_dict(results_rs)
-    fig_rs_analysis = plot_rs_analysis(df_rs_analysis, interval_rs)
+    fig_rs_analysis = plot_rs_analysis(df_rs_analysis)
     fig_name = f'fig_rs_summary_{interval_rs}.png'
     fig_rs_analysis.write_image(fig_name)
 

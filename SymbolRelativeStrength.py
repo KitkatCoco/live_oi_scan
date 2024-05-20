@@ -35,6 +35,9 @@ class DataParser:
         self._get_price_data()
         self._calc_technical_indicators()
 
+        # Normalizer
+
+
     def _setup_current_timestamp(self):
         current_time = int(time.time() * 1000)
         self.interval_duration_ms = dict_interval_duration_ms[self.interval_basic]
@@ -62,6 +65,7 @@ class DataParser:
 
         # Get the average of abs values as the normalizing factor
         norm_factor = np.mean([threshold_price_change_positive, threshold_price_change_negative])
+        self.norm_factor = norm_factor
 
         # Normalize the price change values
         df_price['Price Change Normalized'] = df_price['Price Change'] / norm_factor
@@ -69,6 +73,7 @@ class DataParser:
         # Update the dataframe
         df_price.dropna(inplace=True)
         self.df_price = df_price
+
 
     def _get_price_data(self):
         try:
