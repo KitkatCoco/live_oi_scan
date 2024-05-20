@@ -62,10 +62,11 @@ def post_processing_oi(results_oi, interval):
         fig_name = f'fig_oi_summary_{interval}.png'
         fig_oi_analysis.write_image(fig_name)
         df_oi_analysis_sorted = df_oi_analysis.sort_values(by="max_open_interest_change_pct", ascending=False)
-        symbols = df_oi_analysis_sorted['symbol'].tolist()
-        symbols_str = '初选名单: ' + ' '.join(symbols)
+        # symbols = df_oi_analysis_sorted['symbol'].tolist()
+        # symbols_str = '初选名单: ' + ' '.join(symbols)
         webhook_discord_oi.post(
-            content=f"{interval}级别{symbols_str}",
+            # content=f"{interval}级别{symbols_str}",
+            content=f"{interval}级别\n",
             file={
                 "file1": open(fig_name, "rb"),
             },
@@ -103,10 +104,11 @@ def post_processing_pa(results_pa, interval):
         symbols_short = df_pa_analysis_short['symbol'].tolist()
 
         # create the string to be posted
-        symbols_str = '做多关注: ' + ' '.join(symbols_long) + '\n' + '做空关注: ' + ' '.join(symbols_short)
+        # symbols_str = '做多关注: ' + ' '.join(symbols_long) + '\n' + '做空关注: ' + ' '.join(symbols_short)
 
         webhook_discord_pa.post(
-            content=f"{interval}级别\n{symbols_str}",
+            # content=f"{interval}级别\n{symbols_str}",
+            content=f"{interval}级别\n",
             file={
                 "file1": open(fig_name, "rb"),
             },
@@ -114,19 +116,19 @@ def post_processing_pa(results_pa, interval):
         os.remove(fig_name)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
-    args = parser.parse_args()
-    interval = args.interval
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    # args = parser.parse_args()
+    # interval = args.interval
 
     # debug
-    # interval = '15m'
+    # interval = '5m'
+    interval = '15m'
     # interval = '30m'
     # interval = '1h'
     # interval = '2h'
     # interval = '4h'
     # interval = '12h'
-    # interval = '1h'
 
     # timer
     start_time = time.time()

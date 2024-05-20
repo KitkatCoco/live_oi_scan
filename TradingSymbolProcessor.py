@@ -30,7 +30,6 @@ class TradingSymbolProcessor:
         self.df_price_oi = None
         self.df_oi = None
 
-
     def _setup_static_parameters(self):
         # Static parameters initialized once since they don't change per symbol
         self.threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[self.interval]
@@ -44,13 +43,11 @@ class TradingSymbolProcessor:
         self.threshold_oi_change_pct_positive_short_term = self.threshold_oi_change_pct_positive / 3
         self.threshold_oi_change_pct_positive_mid_term = self.threshold_oi_change_pct_positive * 2 / 3
 
-
     def _setup_webhooks(self):
         # Setup Discord webhooks for notifications
         self.webhook_discord_oi = Discord(url=dict_dc_webhook_oi[self.interval])
         self.webhook_discord_oi_trading = Discord(url=dict_dc_webhook_oi_trading_signal[self.interval])
         self.webhook_discord_pa = Discord(url=dict_dc_webhook_pa[self.interval])
-
 
     def _setup_current_timestamp(self):
         current_time = int(time.time() * 1000)
@@ -60,9 +57,7 @@ class TradingSymbolProcessor:
         self.start_time_price = (self.current_time_recent_close
                                  - NUM_CANDLE_HIST_PRICE * dict_interval_duration_ms[self.interval])
 
-
     def _get_price_data(self):
-
         try:
             # price
             price_data = self.um_futures_client.klines(symbol=self.symbol,
@@ -70,7 +65,6 @@ class TradingSymbolProcessor:
                                                        limit=NUM_CANDLE_HIST_PRICE,
                                                        startTime=self.start_time_price,
                                                        )
-
             df_price = pd.DataFrame(price_data,
                                     columns=['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close Time',
                                              'Quote Asset Volume', 'Number of Trades', 'Taker Buy Base Asset Volume',
@@ -98,6 +92,26 @@ class TradingSymbolProcessor:
             print(error_msg)
             traceback.print_exc()
             self.df_price = None
+
+
+    def _calc_technical_indicators(self):
+
+        df_price = self.df_price
+
+        # calculate indicators
+        df_price['RSI'] = talib.RSI(df_price['Close'], timeperiod=14)
+        df_price['SMA'] = talib.SMA(df_price['Close'], timeperiod=SMA_LENGTH_PRICE)
+        df_price['ATR'] = talib.ATR(df_price['High'], df_price['Low'], df_price['Close'], timeperiod=NUM_ATR_PERIODS)
+        df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=NUM_ATR_PERIODS)
+        df_price['Direction'] = np.where(df_price['Close'] > df_price['Open'], 'U', 'D')
+
+        # Price-action analysis, lower pinbar length is calculated when as the lower of open-low and close-low
+        df_price['lower_pinbar_length'] = np.minimum(df_price['Open'], df_price['Close']) - df_price['Low']
+        df_price['upper_pinbar_length'] = df_price['High'] - np.maximum(df_price['Open'], df_price['Close'])
+
+        # update the dataframe
+        df_price.dropna(inplace=True)
+        self.df_price = df_price
 
 
     def _get_oi_data(self):
@@ -152,89 +166,55 @@ class TradingSymbolProcessor:
             self.df_oi = None
 
 
-    def _calc_technical_indicators(self):
-
-        df_price = self.df_price
-
-        # calculate indicators
-        df_price['RSI'] = talib.RSI(df_price['Close'], timeperiod=14)
-        df_price['SMA'] = talib.SMA(df_price['Close'], timeperiod=SMA_LENGTH_PRICE)
-        df_price['ATR'] = talib.ATR(df_price['High'], df_price['Low'], df_price['Close'], timeperiod=100)
-        df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=100)
-
-        # Price-action analysis
-        df_price['lower_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
-                                                   df_price['Open'] - df_price['Low'],
-                                                   df_price['Close'] - df_price['Low'])
-        df_price['upper_pinbar_length'] = np.where(df_price['Open'] < df_price['Close'],
-                                                   df_price['High'] - df_price['Close'],
-                                                   df_price['High'] - df_price['Open'])
-
-        # update the dataframe
-        df_price.dropna(inplace=True)
-        self.df_price = df_price
-
-
     def run_pa_analysis(self):
-
-        msg_rsi = ''
-        msg_pinbar = ''
-        # msg_poway = ''
-
         try:
             # get the current parameter values
             RSI_cur = self.df_price['RSI'].iloc[-1]
             ATR_cur = self.df_price['ATR'].iloc[-1]
-            Vol_cur = float(self.df_price['Volume'].iloc[-1])
-            Vol_MA_cur = self.df_price['Volume_MA'].iloc[-1]
+            # Vol_cur = float(self.df_price['Volume'].iloc[-1])
+            # Vol_MA_cur = self.df_price['Volume_MA'].iloc[-1]
             lower_pinbar_cur = self.df_price['lower_pinbar_length'].iloc[-1]
             upper_pinbar_cur = self.df_price['upper_pinbar_length'].iloc[-1]
             cur_price_open = self.df_price['Open'].iloc[-1]
             cur_price_close = self.df_price['Close'].iloc[-1]
-            cur_price_low = self.df_price['Low'].iloc[-1]
-            cur_price_high = self.df_price['High'].iloc[-1]
+            # cur_price_low = self.df_price['Low'].iloc[-1]
+            # cur_price_high = self.df_price['High'].iloc[-1]
 
             # RSI signal
             is_rsi_oversold = False
             is_rsi_overbought = False
             if RSI_cur <= RSI_OVERSOLD:
                 is_rsi_oversold = True
-                msg_rsi = f'RSI超卖<{RSI_OVERSOLD}'
             if RSI_cur >= RSI_OVERBOUGHT:
                 is_rsi_overbought = True
-                msg_rsi = f'RSI超买>{RSI_OVERBOUGHT}'
 
             # Pinbar signal
             is_bullish_pinbar = False
             is_bearish_pinbar = False
-            if lower_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur and \
-                    cur_price_close > cur_price_open:
+            if lower_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur:
                 is_bullish_pinbar = True
-                msg_pinbar = '看涨针线'
-            if upper_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur and \
-                    cur_price_close < cur_price_open:
+            if upper_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur:
                 is_bearish_pinbar = True
-                msg_pinbar = '看跌针线'
 
             # check if the last candle's low is the lowest in all last num_candle_hist_oi candles
-            is_lowest_low = False
-            is_highest_high = False
-            num_candle_hl_check = min(POWAY_NUM_CANDLE_LOOKBACK, len(self.df_price))
-            if cur_price_low == self.df_price['Low'].iloc[-POWAY_NUM_CANDLE_LOOKBACK:].min():
-                is_lowest_low = True
-                # msg_poway = '价格新低'
-            if cur_price_high == self.df_price['High'].iloc[-POWAY_NUM_CANDLE_LOOKBACK:].max():
-                is_highest_high = True
-                # msg_poway = '价格新高'
+            # is_lowest_low = False
+            # is_highest_high = False
+            # num_candle_hl_check = min(POWAY_NUM_CANDLE_LOOKBACK, len(self.df_price))
+            # if cur_price_low == self.df_price['Low'].iloc[-num_candle_hl_check:].min():
+            #     is_lowest_low = True
+            # if cur_price_high == self.df_price['High'].iloc[-num_candle_hl_check:].max():
+            #     is_highest_high = True
 
             # Only all conditions are met, return the results
-            if is_rsi_oversold and is_bullish_pinbar and is_lowest_low:
+            # if is_rsi_oversold and is_bullish_pinbar and is_lowest_low:
+            if is_rsi_oversold and is_bullish_pinbar:
                 return {'symbol': self.symbol,
                         'direction': 'Long',
                         'RSI': RSI_cur,
                         'pin_ratio': lower_pinbar_cur / ATR_cur,
                         }
-            elif is_rsi_overbought and is_bearish_pinbar and is_highest_high:
+            # elif is_rsi_overbought and is_bearish_pinbar and is_highest_high:
+            elif is_rsi_overbought and is_bearish_pinbar:
                 return {'symbol': self.symbol,
                         'direction': 'Short',
                         'RSI': RSI_cur,
@@ -249,6 +229,7 @@ class TradingSymbolProcessor:
             traceback.print_exc()
             return None
 
+
     def run_oi_analysis(self):
 
         try:
@@ -262,26 +243,45 @@ class TradingSymbolProcessor:
                 oi_change_pct = ((self.df_oi['SMA'].iloc[-1] - self.df_oi['SMA'].iloc[-i])
                                  / self.df_oi['SMA'].iloc[-i] * 100)
 
-                # Condition check based on thresholds
+                # new condition 2024.5.20 only screen for OI increase
                 if i <= self.short_range_end:
-                    if (price_change_pct < self.threshold_price_change_pct_negative_short_term
-                            and oi_change_pct > self.threshold_oi_change_pct_positive_short_term):
+                    if oi_change_pct > self.threshold_oi_change_pct_positive_short_term:
                         valid_lengths.append(i)
                         list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
 
                 elif i <= self.mid_range_end:
-                    if (price_change_pct < self.threshold_price_change_pct_negative_mid_term
-                            and oi_change_pct > self.threshold_oi_change_pct_positive_mid_term):
+                    if oi_change_pct > self.threshold_oi_change_pct_positive_mid_term:
                         valid_lengths.append(i)
                         list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
+
                 else:
-                    if (price_change_pct < self.threshold_price_change_pct_negative
-                            and oi_change_pct > self.threshold_oi_change_pct_positive):
+                    if oi_change_pct > self.threshold_oi_change_pct_positive:
                         valid_lengths.append(i)
                         list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
+
+                # # Condition check based on thresholds
+                # if i <= self.short_range_end:
+                #     if (price_change_pct < self.threshold_price_change_pct_negative_short_term
+                #             and oi_change_pct > self.threshold_oi_change_pct_positive_short_term):
+                #         valid_lengths.append(i)
+                #         list_price_change_pct.append(price_change_pct)
+                #         list_oi_change_pct.append(oi_change_pct)
+                #
+                # elif i <= self.mid_range_end:
+                #     if (price_change_pct < self.threshold_price_change_pct_negative_mid_term
+                #             and oi_change_pct > self.threshold_oi_change_pct_positive_mid_term):
+                #         valid_lengths.append(i)
+                #         list_price_change_pct.append(price_change_pct)
+                #         list_oi_change_pct.append(oi_change_pct)
+                # else:
+                #     if (price_change_pct < self.threshold_price_change_pct_negative
+                #             and oi_change_pct > self.threshold_oi_change_pct_positive):
+                #         valid_lengths.append(i)
+                #         list_price_change_pct.append(price_change_pct)
+                #         list_oi_change_pct.append(oi_change_pct)
 
             if len(valid_lengths) > 3:
                 criteria_ranges = [
@@ -310,6 +310,26 @@ class TradingSymbolProcessor:
             print(error_msg)
             traceback.print_exc()
             return None
+
+
+    """ This is the main function that will be called for each symbol."""
+    def run(self):
+        dict_results = {}
+        self._get_price_data()
+        self._calc_technical_indicators()
+
+        # OI analysis
+        self._get_oi_data()
+        results_oi_analysis = self.run_oi_analysis()
+        dict_results['oi_analysis'] = results_oi_analysis
+
+        # PA analysis
+        results_pa_analysis = self.run_pa_analysis()
+        dict_results['pa_analysis'] = results_pa_analysis
+
+        return dict_results
+
+
 
 # def post_oi_alerts(self):
     #
@@ -369,24 +389,5 @@ class TradingSymbolProcessor:
     #         os.remove(fig_name)
     #         flag_plot_exist = False
     #
-
-
-    """ This is the main function that will be called for each symbol."""
-    def run(self):
-        dict_results = {}
-        self._get_price_data()
-        self._calc_technical_indicators()
-
-        # OI analysis
-        self._get_oi_data()
-        results_oi_analysis = self.run_oi_analysis()
-        dict_results['oi_analysis'] = results_oi_analysis
-
-        # PA analysis
-        results_pa_analysis = self.run_pa_analysis()
-        dict_results['pa_analysis'] = results_pa_analysis
-
-        return dict_results
-
 
 

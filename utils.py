@@ -106,31 +106,23 @@ def plot_oi_analysis(df_oi_analysis, interval):
         fig (plotly.graph_objects.Figure): The Plotly figure object.
     """
     # Constants for axes limits
-    max_limits = {
-        '15m': (MAX_PRICE_DROP_PCT_15M, MAX_OI_INCREASE_PCT_15M),
-        '30m': (MAX_PRICE_DROP_PCT_30M, MAX_OI_INCREASE_PCT_30M),
-        '1h': (MAX_PRICE_DROP_PCT_1H, MAX_OI_INCREASE_PCT_1H),
-        '2h': (MAX_PRICE_DROP_PCT_2H, MAX_OI_INCREASE_PCT_2H),
-        '4h': (MAX_PRICE_DROP_PCT_4H, MAX_OI_INCREASE_PCT_4H),
-        '12h': (MAX_PRICE_DROP_PCT_12H, MAX_OI_INCREASE_PCT_12H),
-    }
-    max_x, max_y = max_limits.get(interval, (100, 100))  # Default max limits
+    max_y, max_x = max_limits_oi_plot.get(interval, (100, 100))  # Default max limits
 
     # Clip values exceeding the maximum limits
-    df_oi_analysis['max_price_drop_pct'] = df_oi_analysis['max_price_drop_pct'].clip(upper=max_x)
-    df_oi_analysis['max_open_interest_change_pct'] = df_oi_analysis['max_open_interest_change_pct'].clip(upper=max_y)
+    df_oi_analysis['max_price_drop_pct'] = df_oi_analysis['max_price_drop_pct'].clip(upper=max_y)
+    df_oi_analysis['max_open_interest_change_pct'] = df_oi_analysis['max_open_interest_change_pct'].clip(upper=max_x)
 
     # get rid of the 'USDT' in the symbol
     df_oi_analysis['symbol'] = df_oi_analysis['symbol'].str.replace('USDT', '')
 
     # Creating the scatter plot
     fig = px.scatter(df_oi_analysis,
-                     x='max_price_drop_pct',
-                     y='max_open_interest_change_pct',
+                     x='max_open_interest_change_pct',
+                     y='max_price_drop_pct',
                      text='symbol',
                      labels={
-                         "max_price_drop_pct": "Max Price Drop (%)",
-                         "max_open_interest_change_pct": "Max Open Interest Change (%)"
+                         "max_open_interest_change_pct": "OI change (%)",
+                         "max_price_drop_pct": "Price change (%)",
                      },
                      title="")
 
@@ -138,7 +130,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
     fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
-            title='Max Price Drop (%)',
+            title='OI change (%)',
             range=[0, max_x],
             showgrid=True,
             gridcolor='LightGray',
@@ -146,8 +138,8 @@ def plot_oi_analysis(df_oi_analysis, interval):
             tickfont=dict(size=14)
         ),
         yaxis=dict(
-            title='Max Open Interest Change (%)',
-            range=[0, max_y],
+            title='Price change (%)',
+            range=[-max_y, max_y],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
@@ -182,14 +174,14 @@ def plot_pa_analysis(df_pa_analysis, interval):
     # clip the pin_ratio values at the maximum limit
     df_pa_analysis['pin_ratio'] = df_pa_analysis['pin_ratio'].clip(upper=max_x)
 
-    # Creating the scatter plot
+    # Creating the scatter plot, using a size of 8 for the markers
     fig = px.scatter(df_pa_analysis,
                      x='pin_ratio',
                      y='RSI',
                      text='symbol',
                      labels={
                          "pin_ratio": "PA strength",
-                         "RSI": "RSI"
+                         "RSI": "RSI",
                      },
                      title="")
 
@@ -231,7 +223,6 @@ def plot_pa_analysis(df_pa_analysis, interval):
                   fillcolor="pink", opacity=0.2, layer="below", line_width=0)
     fig.add_shape(type="rect", x0=0, y0=80, x1=max_x, y1=100,
                   fillcolor="red", opacity=0.2, layer="below", line_width=0)
-
 
     return fig
 
