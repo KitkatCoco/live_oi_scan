@@ -237,10 +237,8 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.update_traces(marker=dict(
         color=df_pa_analysis['pin_ratio'],
         colorscale="Viridis",  # Change the colorscale to "Viridis" for a gradient effect
-        showscale=True
+        showscale=False
     ))
-
-    fig.show()
 
     return fig
 
