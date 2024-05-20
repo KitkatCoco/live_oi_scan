@@ -108,7 +108,9 @@ def plot_oi_analysis(df_oi_analysis, interval):
     # Constants for axes limits
     max_limits = {
         '15m': (MAX_PRICE_DROP_PCT_15M, MAX_OI_INCREASE_PCT_15M),
+        '30m': (MAX_PRICE_DROP_PCT_30M, MAX_OI_INCREASE_PCT_30M),
         '1h': (MAX_PRICE_DROP_PCT_1H, MAX_OI_INCREASE_PCT_1H),
+        '2h': (MAX_PRICE_DROP_PCT_2H, MAX_OI_INCREASE_PCT_2H),
         '4h': (MAX_PRICE_DROP_PCT_4H, MAX_OI_INCREASE_PCT_4H),
         '12h': (MAX_PRICE_DROP_PCT_12H, MAX_OI_INCREASE_PCT_12H),
     }
@@ -157,7 +159,6 @@ def plot_oi_analysis(df_oi_analysis, interval):
 
     return fig
 
-
 def plot_pa_analysis(df_pa_analysis, interval):
     """
     Plots a scatter chart of RSI vs. Pin Length Ratio for trading symbols,
@@ -178,16 +179,15 @@ def plot_pa_analysis(df_pa_analysis, interval):
     # Removing 'USDT' from the symbol names
     df_pa_analysis['symbol'] = df_pa_analysis['symbol'].str.replace('USDT', '')
 
-    # Mapping colors based on the 'direction' column
-    color_map = {'Long': 'green', 'Short': 'red'}
-    df_pa_analysis['color'] = df_pa_analysis['direction'].map(color_map).fillna('red')  # Default to red if not Long or Short
+    # clip the pin_ratio values at the maximum limit
+    df_pa_analysis['pin_ratio'] = df_pa_analysis['pin_ratio'].clip(upper=max_x)
 
     # Creating the scatter plot
     fig = px.scatter(df_pa_analysis,
                      x='pin_ratio',
                      y='RSI',
                      text='symbol',
-                     color='pin_ratio',  # Use 'pin_ratio' for color mapping
+                     color_discrete_sequence=['black'],  # Set all markers to black
                      labels={
                          "pin_ratio": "PA strength",
                          "RSI": "RSI"
@@ -233,15 +233,9 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.add_shape(type="rect", x0=0, y0=80, x1=max_x, y1=100,
                   fillcolor="red", opacity=0.2, layer="below", line_width=0)
 
-    # Add color transition for markers from left to right
-    fig.update_traces(marker=dict(
-        color=df_pa_analysis['pin_ratio'],
-        colorscale="Viridis",  # Change the colorscale to "Viridis" for a gradient effect
-        showscale=False
-    ))
+    fig.show()
 
     return fig
-
 
 
 def plot_rs_analysis(df_rs_analysis):
