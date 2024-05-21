@@ -122,7 +122,7 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # Run the main function
-    main(num_processes=4, interval_rs='1h', interval_basic='1m')
+    main(num_processes=4, interval_rs='1h', interval_basic='5m')
 
     # Report the duration, rounded to 1 decimal place
     webhook_discord_mc = Discord(url=dict_dc_webhook_rs['1h'])

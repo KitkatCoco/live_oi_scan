@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="quant_trading_crypto_binance_2023" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="QuantTrading" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="oi_live_scan" project-jdk-type="Python SDK" />
 </project>

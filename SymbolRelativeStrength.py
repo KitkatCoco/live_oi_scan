@@ -30,17 +30,18 @@ class DataParser:
         self.symbol = symbol
         self.interval_basic = interval_basic
         self.client = Client(api_key=API_KEY, api_secret=API_SECRET)
+        self.num_candle_analysis = NUM_CANDLE_RS_ANALYSIS[interval_basic]
 
         # default - for long term history data analysis for range distribution analysis
         if mode == 'complete':
             self.num_candle_preprocess = NUM_CANDLE_RS_PREPROCESS[interval_basic]
-            self.num_candle_analysis = NUM_CANDLE_RS_ANALYSIS[interval_basic]
             self._setup_current_timestamp()
             self._get_price_data()
             self._calc_technical_indicators()
         # for live data analysis - only download recent data, use pre-saved norm factors
         elif mode == 'live':
             self.num_candle_analysis = self.num_candle_analysis + 300
+            self.num_candle_preprocess = self.num_candle_analysis
             self._setup_current_timestamp()
             self._get_price_data()
             self._calc_technical_indicators_live()
@@ -120,7 +121,10 @@ class DataParser:
 
     def _calc_technical_indicators_live(self):
 
-        from config_candle_range_norm_factors_1m import NORM_FACTORS
+        if self.interval_basic == '1m':
+            from config_candle_range_norm_factors_1m import NORM_FACTORS
+        elif self.interval_basic == '5m':
+            from config_candle_range_norm_factors_5m import NORM_FACTORS
 
         df_price = self.df_price
 

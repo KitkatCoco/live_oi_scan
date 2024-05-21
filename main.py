@@ -86,7 +86,7 @@ def post_processing_pa(results_pa, interval):
     else:
         df_pa_analysis = pd.DataFrame.from_dict(results_pa)
 
-        fig_pa_analysis = plot_pa_analysis(df_pa_analysis, interval)
+        fig_pa_analysis = plot_pa_analysis(df_pa_analysis)
         fig_name = f'fig_pa_summary_{interval}.png'
         fig_pa_analysis.write_image(fig_name)
 
@@ -115,13 +115,13 @@ def post_processing_pa(results_pa, interval):
         os.remove(fig_name)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', default='1h', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
-    args = parser.parse_args()
-    interval = args.interval
+    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    # parser.add_argument('interval', default='5m', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    # args = parser.parse_args()
+    # interval = args.interval
 
     # debug
-    # interval = '5m'
+    interval = '5m'
     # interval = '15m'
     # interval = '30m'
     # interval = '1h'
