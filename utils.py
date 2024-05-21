@@ -151,7 +151,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
 
     return fig
 
-def plot_pa_analysis(df_pa_analysis, interval):
+def plot_pa_analysis(df_pa_analysis):
     """
     Plots a scatter chart of RSI vs. Pin Length Ratio for trading symbols,
     colored by trading direction (Long in green, Short or others in red),

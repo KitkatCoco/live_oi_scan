@@ -175,10 +175,20 @@ class TradingSymbolProcessor:
             # Vol_MA_cur = self.df_price['Volume_MA'].iloc[-1]
             lower_pinbar_cur = self.df_price['lower_pinbar_length'].iloc[-1]
             upper_pinbar_cur = self.df_price['upper_pinbar_length'].iloc[-1]
-            # cur_price_open = self.df_price['Open'].iloc[-1]
-            # cur_price_close = self.df_price['Close'].iloc[-1]
+            cur_price_open = self.df_price['Open'].iloc[-1]
+            cur_price_close = self.df_price['Close'].iloc[-1]
             # cur_price_low = self.df_price['Low'].iloc[-1]
             # cur_price_high = self.df_price['High'].iloc[-1]
+
+
+            # check if the last candle is a bullish or bearish candle
+            is_green_candle = False
+            is_red_candle = False
+            if cur_price_close > cur_price_open:
+                is_green_candle = True
+            if cur_price_close < cur_price_open:
+                is_red_candle = True
+
 
             # RSI signal
             is_rsi_oversold = False
@@ -207,14 +217,14 @@ class TradingSymbolProcessor:
 
             # Only all conditions are met, return the results
             # if is_rsi_oversold and is_bullish_pinbar and is_lowest_low:
-            if is_rsi_oversold and is_bullish_pinbar:
+            if is_rsi_oversold and is_bullish_pinbar and is_green_candle:
                 return {'symbol': self.symbol,
                         'direction': 'Long',
                         'RSI': RSI_cur,
                         'pin_ratio': lower_pinbar_cur / ATR_cur,
                         }
             # elif is_rsi_overbought and is_bearish_pinbar and is_highest_high:
-            elif is_rsi_overbought and is_bearish_pinbar:
+            elif is_rsi_overbought and is_bearish_pinbar and is_red_candle:
                 return {'symbol': self.symbol,
                         'direction': 'Short',
                         'RSI': RSI_cur,
