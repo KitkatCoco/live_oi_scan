@@ -24,7 +24,7 @@ def process_symbol(symbol, df_price_btc):
         # Get the current symbol data
         parser_cur = DataParser(symbol=symbol, interval_basic='1m',
                                 mode='live',
-                                num_1min_candle_preprocess=NUM_1MIN_CANDLE_ANALYLSIS)
+                                )
         df_price_cur = parser_cur.df_price
 
         if df_price_cur is None:
@@ -65,7 +65,7 @@ def initialize_btc_data():
     parser_btc = DataParser(symbol='BTCUSDT',
                             interval_basic='1m',
                             mode='live',
-                            num_1min_candle_preprocess=NUM_1MIN_CANDLE_ANALYLSIS)
+                            )
     return parser_btc.df_price
 
 def load_symbols():

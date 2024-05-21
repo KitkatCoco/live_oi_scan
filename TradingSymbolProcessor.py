@@ -175,8 +175,8 @@ class TradingSymbolProcessor:
             # Vol_MA_cur = self.df_price['Volume_MA'].iloc[-1]
             lower_pinbar_cur = self.df_price['lower_pinbar_length'].iloc[-1]
             upper_pinbar_cur = self.df_price['upper_pinbar_length'].iloc[-1]
-            cur_price_open = self.df_price['Open'].iloc[-1]
-            cur_price_close = self.df_price['Close'].iloc[-1]
+            # cur_price_open = self.df_price['Open'].iloc[-1]
+            # cur_price_close = self.df_price['Close'].iloc[-1]
             # cur_price_low = self.df_price['Low'].iloc[-1]
             # cur_price_high = self.df_price['High'].iloc[-1]
 
@@ -236,10 +236,11 @@ class TradingSymbolProcessor:
             valid_lengths = []
             list_price_change_pct = []
             list_oi_change_pct = []
+            idx_oi_change = []
 
             for i in range(SEARCH_NUM_CANDLE_MIN, SEARCH_NUM_CANDLE_MAX, SEARCH_NUM_CANDLE_INC):
-                price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-i])
-                                    / self.df_price['SMA'].iloc[-i] * 100)
+                # price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-i])
+                #                     / self.df_price['SMA'].iloc[-i] * 100)
                 oi_change_pct = ((self.df_oi['SMA'].iloc[-1] - self.df_oi['SMA'].iloc[-i])
                                  / self.df_oi['SMA'].iloc[-i] * 100)
 
@@ -247,19 +248,19 @@ class TradingSymbolProcessor:
                 if i <= self.short_range_end:
                     if oi_change_pct > self.threshold_oi_change_pct_positive_short_term:
                         valid_lengths.append(i)
-                        list_price_change_pct.append(price_change_pct)
+                        # list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
 
                 elif i <= self.mid_range_end:
                     if oi_change_pct > self.threshold_oi_change_pct_positive_mid_term:
                         valid_lengths.append(i)
-                        list_price_change_pct.append(price_change_pct)
+                        # list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
 
                 else:
                     if oi_change_pct > self.threshold_oi_change_pct_positive:
                         valid_lengths.append(i)
-                        list_price_change_pct.append(price_change_pct)
+                        # list_price_change_pct.append(price_change_pct)
                         list_oi_change_pct.append(oi_change_pct)
 
                 # # Condition check based on thresholds
@@ -292,12 +293,17 @@ class TradingSymbolProcessor:
                 if all(criteria_ranges):
                     # find the maximum OI change and max price drop
                     max_open_interest_change_pct = max(list_oi_change_pct)
-                    max_price_drop_pct = -min(list_price_change_pct)
+                    # max_price_drop_pct = -min(list_price_change_pct)
+
+                    # find the max of valid lengths
+                    max_valid_length = max(valid_lengths)
+                    price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-max_valid_length])
+                                        / self.df_price['SMA'].iloc[-max_valid_length] * 100)
 
                     oi_analysis_results = {
                         'symbol': self.symbol,
                         'max_open_interest_change_pct': max_open_interest_change_pct,
-                        'max_price_drop_pct': max_price_drop_pct
+                        'max_price_drop_pct': price_change_pct
                     }
 
                     # Process the criteria met condition

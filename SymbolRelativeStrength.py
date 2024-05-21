@@ -11,7 +11,7 @@ import traceback
 from config_params_market_analysis import *
 from config_constants import *
 from config_binance_api import *
-from config_candle_range_1min_norm_factors import NORM_FACTORS
+
 
 @sleep_and_retry
 @limits(calls=1, period=2)  # 2 requests per second
@@ -26,32 +26,32 @@ class DataParser:
     def __init__(self, symbol,
                  interval_basic='1m',
                  mode='complete',    # mode - complete or live
-                 num_1min_candle_preprocess=NUM_1MIN_CANDLE_PREPROCESS):
+                 ):
         self.symbol = symbol
         self.interval_basic = interval_basic
         self.client = Client(api_key=API_KEY, api_secret=API_SECRET)
-        self.num_1min_candle_preprocess = num_1min_candle_preprocess
 
-        # default - for long history data analysis for range characterization
+        # default - for long term history data analysis for range distribution analysis
         if mode == 'complete':
+            self.num_candle_preprocess = NUM_CANDLE_RS_PREPROCESS[interval_basic]
+            self.num_candle_analysis = NUM_CANDLE_RS_ANALYSIS[interval_basic]
             self._setup_current_timestamp()
             self._get_price_data()
             self._calc_technical_indicators()
         # for live data analysis - only download recent data, use pre-saved norm factors
         elif mode == 'live':
-            num_1min_candle_analysis = NUM_1MIN_CANDLE_ANALYLSIS + 300
-            self._setup_current_timestamp(num_candles=num_1min_candle_analysis)
+            self.num_candle_analysis = self.num_candle_analysis + 300
+            self._setup_current_timestamp()
             self._get_price_data()
             self._calc_technical_indicators_live()
 
-    def _setup_current_timestamp(self, num_candles=NUM_1MIN_CANDLE_PREPROCESS):
+    def _setup_current_timestamp(self):
         current_time = int(time.time() * 1000)
         self.interval_duration_ms = dict_interval_duration_ms[self.interval_basic]
         self.current_time_recent_close = current_time - (current_time % self.interval_duration_ms)
         self.current_time = current_time
         self.start_time_price = (self.current_time_recent_close
-                                 - num_candles * dict_interval_duration_ms[self.interval_basic])
-
+                                 - self.num_candle_preprocess * dict_interval_duration_ms[self.interval_basic])
 
     def _get_price_data(self):
         try:
@@ -120,6 +120,8 @@ class DataParser:
 
     def _calc_technical_indicators_live(self):
 
+        from config_candle_range_1min_norm_factors import NORM_FACTORS
+
         df_price = self.df_price
 
         # instead of calculating a long history ranges, use pre-saved values
@@ -143,14 +145,15 @@ class SymbolRelativeStrength:
                  df_price_cur,
                  interval_rs='1h',
                  interval_basic='1m',
-                 num_1min_candle_analysis=NUM_1MIN_CANDLE_ANALYLSIS):
+                 ):
 
         self.symbol = symbol
         self.interval_rs = interval_rs
         self.interval_basic = interval_basic
-        self.num_1min_candle_analysis = num_1min_candle_analysis
         self.df_price_cur = df_price_cur
         self.df_price_btc = df_price_btc
+        self.num_1min_candle_analysis = NUM_CANDLE_RS_ANALYSIS[interval_basic]
+        self.num_candle_analysis = NUM_CANDLE_RS_ANALYSIS[interval_basic]
 
     def run_symbol_relative_strength(self):
         try:
