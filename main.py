@@ -61,7 +61,7 @@ def post_processing_oi(results_oi, interval):
         fig_oi_analysis = plot_oi_analysis(df_oi_analysis, interval)
         fig_name = f'fig_oi_summary_{interval}.png'
         fig_oi_analysis.write_image(fig_name)
-        df_oi_analysis_sorted = df_oi_analysis.sort_values(by="max_open_interest_change_pct", ascending=False)
+        # df_oi_analysis_sorted = df_oi_analysis.sort_values(by="max_open_interest_change_pct", ascending=False)
         # symbols = df_oi_analysis_sorted['symbol'].tolist()
         # symbols_str = '初选名单: ' + ' '.join(symbols)
         webhook_discord_oi.post(
@@ -100,8 +100,8 @@ def post_processing_pa(results_pa, interval):
         df_pa_analysis_short = df_pa_analysis_short.sort_values(by="pin_ratio", ascending=False)
 
         # get the symbol names
-        symbols_long = df_pa_analysis_long['symbol'].tolist()
-        symbols_short = df_pa_analysis_short['symbol'].tolist()
+        # symbols_long = df_pa_analysis_long['symbol'].tolist()
+        # symbols_short = df_pa_analysis_short['symbol'].tolist()
 
         # create the string to be posted
         # symbols_str = '做多关注: ' + ' '.join(symbols_long) + '\n' + '做空关注: ' + ' '.join(symbols_short)

@@ -120,7 +120,7 @@ class DataParser:
 
     def _calc_technical_indicators_live(self):
 
-        from config_candle_range_1min_norm_factors import NORM_FACTORS
+        from config_candle_range_norm_factors_1m import NORM_FACTORS
 
         df_price = self.df_price
 

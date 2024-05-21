@@ -2,6 +2,7 @@ from SymbolRelativeStrength import DataParser
 import time
 import pandas as pd
 from multiprocessing import Process, Queue, cpu_count
+import argparse
 
 def load_symbols():
     # Load symbols from a list_symbols.txt file
@@ -9,7 +10,7 @@ def load_symbols():
         all_symbols = f.read().splitlines()
     return all_symbols
 
-def worker(symbol_queue, result_queue, delay):
+def worker(symbol_queue, result_queue, delay, interval):
     while not symbol_queue.empty():
         symbol = symbol_queue.get()
         try:
@@ -17,9 +18,10 @@ def worker(symbol_queue, result_queue, delay):
             time.sleep(delay)
             print(f"Processing {symbol}")
             t0 = time.time()
-            # Get the current symbol data
-            parser_cur = DataParser(symbol, '1m')
+
+            parser_cur = DataParser(symbol, interval_basic=interval)
             norm_factor = parser_cur.norm_factor
+
             t1 = time.time()
             print(f"Processed {symbol} in {t1 - t0:.1f} seconds")
 
@@ -28,8 +30,16 @@ def worker(symbol_queue, result_queue, delay):
             print(error_msg)
             norm_factor = None
         result_queue.put({'symbol': symbol, 'norm_factor': norm_factor})
+        symbol_queue.task_done()  # Mark the task as done
 
 if __name__ == '__main__':
+
+    # Use parse arguments to receive parameters
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--interval', type=str, default='5m', help='analysis interval')
+    args = parser.parse_args()
+    interval = args.interval
+
     # Start the timer
     t0 = time.time()
 
@@ -47,8 +57,7 @@ if __name__ == '__main__':
         symbol_queue.put(symbol)
 
     # Determine the number of processes to use
-    # num_processes = min(len(all_symbols), cpu_count())
-    num_processes = 6
+    num_processes = min(len(all_symbols), cpu_count())
 
     # Calculate a delay to avoid hitting the rate limit
     delay = 10
@@ -56,14 +65,14 @@ if __name__ == '__main__':
     # Create a list of processes
     processes = []
     for i in range(num_processes):
-        p = Process(target=worker, args=(symbol_queue, result_queue, delay))
+        p = Process(target=worker, args=(symbol_queue, result_queue, delay, interval))
         processes.append(p)
         p.start()
         time.sleep(delay)  # Stagger the start of each process
 
     # Wait for all processes to finish
     for p in processes:
-        p.join()
+        p.join(timeout=60)  # Timeout for join to avoid hanging
 
     # Collect results from the result queue
     norm_factors = []
@@ -72,11 +81,11 @@ if __name__ == '__main__':
 
     # Save the normalizer factors to a CSV file
     df_norm_factors = pd.DataFrame(norm_factors)
-    df_norm_factors.to_csv('config_candle_range_1min_norm_factors.csv', index=False)
+    df_norm_factors.to_csv(f'config_candle_range_norm_factors_{interval}.csv', index=False)
 
     # Save the normalizer factors to a Python file as a dictionary
     norm_factors_dict = {row['symbol']: row['norm_factor'] for _, row in df_norm_factors.iterrows()}
-    with open('config_candle_range_1min_norm_factors.py', 'w') as f:
+    with open(f'config_candle_range_norm_factors_{interval}.py', 'w') as f:
         f.write('NORM_FACTORS = {\n')
         for symbol, norm_factor in norm_factors_dict.items():
             f.write(f"    '{symbol}': {norm_factor},\n")
