@@ -9,8 +9,6 @@ dict_dc_webhook_oi = {
     '12h': 'https://discordapp.com/api/webhooks/1245352989561192490/SoUHSggRRl_KFHBoKhZ3Hq5tSiRZ13PP0hBPUOz_NwTdHd3I6XAMVTYNe5j8pHqNok9G',
 }
 
-
-
 # dict_dc_webhook_oi = {
 #      '5m': 'https://discord.com/api/webhooks/1242443091357601803/FOKWynpsjjczZsXVM8TYIY0BVyODB99smHGvFYvenDTgkw9gFKKFTBwJ1NM_0h_drGrx',
 #     '15m': 'https://discord.com/api/webhooks/1236783307769774130/CohkHzfrJ_kGzR6UxfJpnJEiAEkTpIHZWCZ14LyAzUvumjf95r3iepHdgVGKmSSFIsOy',

@@ -182,13 +182,12 @@ class TradingSymbolProcessor:
 
 
             # check if the last candle is a bullish or bearish candle
-            is_green_candle = False
-            is_red_candle = False
-            if cur_price_close > cur_price_open:
-                is_green_candle = True
-            if cur_price_close < cur_price_open:
-                is_red_candle = True
-
+            # is_green_candle = False
+            # is_red_candle = False
+            # if cur_price_close > cur_price_open:
+            #     is_green_candle = True
+            # if cur_price_close < cur_price_open:
+            #     is_red_candle = True
 
             # RSI signal
             is_rsi_oversold = False
@@ -217,14 +216,16 @@ class TradingSymbolProcessor:
 
             # Only all conditions are met, return the results
             # if is_rsi_oversold and is_bullish_pinbar and is_lowest_low:
-            if is_rsi_oversold and is_bullish_pinbar and is_green_candle:
+            # if is_rsi_oversold and is_bullish_pinbar and is_green_candle:
+            if is_rsi_oversold and is_bullish_pinbar:
                 return {'symbol': self.symbol,
                         'direction': 'Long',
                         'RSI': RSI_cur,
                         'pin_ratio': lower_pinbar_cur / ATR_cur,
                         }
             # elif is_rsi_overbought and is_bearish_pinbar and is_highest_high:
-            elif is_rsi_overbought and is_bearish_pinbar and is_red_candle:
+            # elif is_rsi_overbought and is_bearish_pinbar and is_red_candle:
+            elif is_rsi_overbought and is_bearish_pinbar:
                 return {'symbol': self.symbol,
                         'direction': 'Short',
                         'RSI': RSI_cur,
