@@ -99,7 +99,7 @@ class TradingSymbolProcessor:
         df_price['RSI'] = talib.RSI(df_price['Close'], timeperiod=14)
         df_price['SMA'] = talib.SMA(df_price['Close'], timeperiod=SMA_LENGTH_PRICE)
         df_price['ATR'] = talib.ATR(df_price['High'], df_price['Low'], df_price['Close'], timeperiod=NUM_ATR_PERIODS)
-        df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=NUM_ATR_PERIODS)
+        df_price['Volume_MA'] = talib.SMA(df_price['Volume'], timeperiod=NUM_VOL_MA_PERIODS)
         df_price['Direction'] = np.where(df_price['Close'] > df_price['Open'], 'U', 'D')
 
         # Price-action analysis, lower pinbar length is calculated when as the lower of open-low and close-low
@@ -137,9 +137,6 @@ class TradingSymbolProcessor:
             # Process open interest data
             df_oi = pd.DataFrame(oi_data)
 
-            if self.symbol == 'AUDIOUSDT':
-                print('pause here')
-
             df_oi.loc[:, 'sumOpenInterest'] = df_oi['sumOpenInterest'].astype(float)
             df_oi.loc[:, 'timestamp'] = pd.to_datetime(df_oi['timestamp'], unit='ms')
 
@@ -154,7 +151,9 @@ class TradingSymbolProcessor:
 
             # save the OI data
             df_oi.dropna(inplace=True)
+
             self.df_oi = df_oi
+            self.df_price_oi = df_price_oi
 
         except Exception as e:
             error_msg = f"Error getting OI data for {self.symbol}: {str(e)}"
@@ -164,6 +163,10 @@ class TradingSymbolProcessor:
 
 
     def run_pa_analysis(self):
+
+        if self.symbol == 'BBUSDT':
+            print('pause here')
+
         try:
             # get the current parameter values
             RSI_cur = self.df_price['RSI'].iloc[-1]
@@ -195,10 +198,10 @@ class TradingSymbolProcessor:
             pin_ratio = 0
             if RSI_cur <= RSI_OVERSOLD and lower_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur:
                 is_pinbar = True
-                pin_ratio = lower_pinbar_cur / PINBAR_BODY_ATR_THRES_MULTIPLIER
+                pin_ratio = lower_pinbar_cur / ATR_cur
             elif RSI_cur >= RSI_OVERBOUGHT and upper_pinbar_cur > PINBAR_BODY_ATR_THRES_MULTIPLIER * ATR_cur:
                 is_pinbar = True
-                pin_ratio = upper_pinbar_cur / PINBAR_BODY_ATR_THRES_MULTIPLIER
+                pin_ratio = upper_pinbar_cur / ATR_cur
 
             # check if the last candle's low is the lowest in all last num_candle_hist_oi candles
             # is_lowest_low = False
@@ -332,6 +335,7 @@ class TradingSymbolProcessor:
 
     """ This is the main function that will be called for each symbol."""
     def run(self):
+
         dict_results = {}
         self._get_price_data()
         self._calc_technical_indicators()

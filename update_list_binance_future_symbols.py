@@ -33,7 +33,8 @@ list_exclusion = ['ANTUSDT', 'AUDIOUSDT','BLUEBIRDUSDT', 'BTCDOMUSDT', 'BTCSTUSD
                     'MBLUSDT', 'MDTUSDT', 'SLPUSDT', 'STPTUSDT', 'SNTUSDT', 'RADUSDT']
 
 for symbol in list_exclusion:
-    list_symbols.remove(symbol)
+    if symbol in list_symbols:
+        list_symbols.remove(symbol)
 
 list_symbols = sorted(list_symbols)
 

@@ -1,5 +1,6 @@
 # Price preprocessing TA indicators
 NUM_ATR_PERIODS = 50
+NUM_VOL_MA_PERIODS = 200
 
 # Simple Moving Average lengths
 SMA_LENGTH_PRICE = 3
