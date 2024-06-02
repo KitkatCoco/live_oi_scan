@@ -86,7 +86,7 @@ def post_processing_pa(results_pa, interval):
     else:
         df_pa_analysis = pd.DataFrame.from_dict(results_pa)
 
-        fig_pa_analysis = plot_pa_analysis(df_pa_analysis)
+        fig_pa_analysis = plot_pa_analysis(df_pa_analysis, interval)
         fig_name = f'fig_pa_summary_{interval}.png'
         fig_pa_analysis.write_image(fig_name)
 

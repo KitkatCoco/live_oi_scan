@@ -113,7 +113,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
     df_oi_analysis['max_open_interest_change_pct'] = df_oi_analysis['max_open_interest_change_pct'].clip(upper=max_x)
 
     # get rid of the 'USDT' in the symbol
-    df_oi_analysis['symbol'] = df_oi_analysis['symbol'].str.replace('USDT', '')
+    df_oi_analysis['symbol'] = df_oi_analysis['symbol'].str.replace('USDT', '').str.replace('1000', '')
 
     # Creating the scatter plot
     fig = px.scatter(df_oi_analysis,
@@ -151,45 +151,57 @@ def plot_oi_analysis(df_oi_analysis, interval):
 
     return fig
 
-def plot_pa_analysis(df_pa_analysis):
-    """
-    Plots a scatter chart of RSI vs. Pin Length Ratio for trading symbols,
-    colored by trading direction (Long in green, Short or others in red),
-    and includes horizontal lines for RSI oversold and overbought thresholds.
+import plotly.express as px
+import pandas as pd
 
-    Parameters:
-        df_pa_analysis (pd.DataFrame): DataFrame containing the columns 'symbol',
-                                       'RSI', 'pin_ratio', and 'direction'.
-
-    Returns:
-        fig (plotly.graph_objects.Figure): The Plotly figure object.
-    """
+def plot_pa_analysis(df_pa_analysis, interval):
     # Constants for axes limits
-    max_x = MAX_PINBAR_RATIO_ATR  # Max ratio of Pinbar length to ATR
-    max_y = 100  # RSI ranges from 0 to 100
+    max_x, max_y = max_limits_pa_plot.get(interval, (10, 30))  # Default max limits
 
-    # Removing 'USDT' from the symbol names
-    df_pa_analysis['symbol'] = df_pa_analysis['symbol'].str.replace('USDT', '')
+    # Removing 'USDT' from the symbol names and other text processing
+    df_pa_analysis['symbol'] = df_pa_analysis['symbol'].str.replace('USDT', '').str.replace('1000', '')
 
-    # clip the pin_ratio values at the maximum limit
-    df_pa_analysis['pin_ratio'] = df_pa_analysis['pin_ratio'].clip(upper=max_x)
+    # Define marker symbols based on is_pinbar
+    df_pa_analysis['marker_symbol'] = df_pa_analysis['is_pinbar'].map({True: 'square', False: 'circle'})
 
-    # Creating the scatter plot, using a size of 8 for the markers
+    # Define colors based on RSI values
+    df_pa_analysis['color'] = pd.cut(df_pa_analysis['RSI'], bins=[0, 20, 40, 60, 80, 100],
+                                     labels=['green', 'lightgreen', 'gray', 'orange', 'red']).astype('object')
+
+    # Override color and symbol for low relative volume entries
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 2, 'color'] = 'gray'
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 2, 'marker_symbol'] = 'circle'
+
+    # Scale marker sizes, ensuring visibility
+    df_pa_analysis['scaled_pin_ratio'] = df_pa_analysis['pin_ratio'].clip(lower=1) * 10
+    df_pa_analysis['marker_size'] = df_pa_analysis['scaled_pin_ratio']
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.8 * max_x, 'marker_size'] = 5  # Smaller size for low rel_vol
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.6 * max_x, 'marker_size'] = 4  # Smaller size for low rel_vol
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.4 * max_x, 'marker_size'] = 3  # Smaller size for low rel_vol
+    df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.2 * max_x, 'marker_size'] = 2  # Smaller size for low rel_vol
+
+    # Creating the scatter plot with explicit color mapping
+    color_map = {'green': '#00FF00', 'lightgreen': '#90EE90', 'gray': '#808080', 'orange': '#FFA500', 'red': '#FF0000'}
     fig = px.scatter(df_pa_analysis,
-                     x='pin_ratio',
-                     y='RSI',
+                     x='rel_vol',
+                     y='price_change_pct',
                      text='symbol',
                      labels={
-                         "pin_ratio": "PA strength",
-                         "RSI": "RSI",
+                         "rel_vol": "Relative Volume",
+                         "price_change_pct": "Price Change (%)"
                      },
-                     title="")
+                     title="Price Analysis",
+                     color='color',
+                     symbol='marker_symbol',
+                     size='marker_size',
+                     size_max=12,
+                     color_discrete_map=color_map)  # Explicit color mapping
 
     # Update traces and layout for detailed display
-    fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
+    fig.update_traces(textposition='top center')
     fig.update_layout(
         xaxis=dict(
-            title='PA strength',
+            title='Relative Volume',
             range=[0, max_x],
             showgrid=True,
             gridcolor='LightGray',
@@ -197,34 +209,33 @@ def plot_pa_analysis(df_pa_analysis):
             tickfont=dict(size=14)
         ),
         yaxis=dict(
-            title='RSI',
-            range=[0, max_y],
-            showgrid=False,  # Disable horizontal grid lines
+            title='Price Change (%)',
+            range=[-max_y, max_y],
+            showgrid=True,
             title_font=dict(size=18),
             tickfont=dict(size=14)
         ),
-        margin=dict(l=10, r=10, t=20, b=20),
+        margin=dict(l=20, r=20, t=40, b=20),
         showlegend=False,
-        coloraxis_showscale=False  # Hides the color scale legend
+        coloraxis_showscale=True  # Shows the color scale legend
     )
 
-    # Add horizontal lines for RSI oversold and overbought levels
-    fig.add_hline(y=RSI_OVERSOLD, line_dash="dash", line_color="gray")
-    fig.add_hline(y=RSI_OVERBOUGHT, line_dash="dash", line_color="gray")
+    # # Add background colors for different x-axis ranges
+    # fig.add_shape(type="rect", x0=0, y0=-0.5*max_y, x1=0.2 * max_x, y1=0.5*max_y,
+    #               fillcolor="green", opacity=0.2, layer="below", line_width=0)
+    # fig.add_shape(type="rect", x0=0.2 * max_x, y0=-0.5*max_y, x1=0.4 * max_x, y1=0.5*max_y,
+    #               fillcolor="lightgreen", opacity=0.2, layer="below", line_width=0)
+    # fig.add_shape(type="rect", x0=0.4 * max_x, y0=-0.5*max_y, x1=0.6 * max_x, y1=0.5*max_y,
+    #               fillcolor="yellow", opacity=0.2, layer="below", line_width=0)
+    # fig.add_shape(type="rect", x0=0.6 * max_x, y0=-0.5*max_y, x1=0.8 * max_x, y1=0.5*max_y,
+    #               fillcolor="orange", opacity=0.2, layer="below", line_width=0)
+    # fig.add_shape(type="rect", x0=0.8 * max_x, y0=-0.5*max_y, x1=max_x, y1=0.5*max_y,
+    #               fillcolor="red", opacity=0.2, layer="below", line_width=0)
 
-    # Add background colors for different y-axis ranges
-    fig.add_shape(type="rect", x0=0, y0=0, x1=max_x, y1=20,
-                  fillcolor="green", opacity=0.2, layer="below", line_width=0)
-    fig.add_shape(type="rect", x0=0, y0=20, x1=max_x, y1=40,
-                  fillcolor="lightgreen", opacity=0.2, layer="below", line_width=0)
-    fig.add_shape(type="rect", x0=0, y0=40, x1=max_x, y1=60,
-                  fillcolor="gray", opacity=0.2, layer="below", line_width=0)
-    fig.add_shape(type="rect", x0=0, y0=60, x1=max_x, y1=80,
-                  fillcolor="pink", opacity=0.2, layer="below", line_width=0)
-    fig.add_shape(type="rect", x0=0, y0=80, x1=max_x, y1=100,
-                  fillcolor="red", opacity=0.2, layer="below", line_width=0)
+    # fig.show()
 
     return fig
+
 
 
 def plot_rs_analysis(df_rs_analysis):
