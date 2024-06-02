@@ -115,15 +115,15 @@ def post_processing_pa(results_pa, interval):
         os.remove(fig_name)
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    # parser.add_argument('interval', default='5m', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
-    # args = parser.parse_args()
-    # interval = args.interval
+    parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
+    parser.add_argument('interval', default='5m', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    args = parser.parse_args()
+    interval = args.interval
 
     # debug
     # interval = '5m'
     # interval = '15m'
-    interval = '30m'
+    # interval = '30m'
     # interval = '1h'
     # interval = '2h'
     # interval = '4h'
