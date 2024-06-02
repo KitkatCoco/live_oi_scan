@@ -180,6 +180,10 @@ def plot_pa_analysis(df_pa_analysis, interval):
     df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.4 * max_x, 'marker_size'] = 3  # Smaller size for low rel_vol
     df_pa_analysis.loc[df_pa_analysis['rel_vol'] < 0.2 * max_x, 'marker_size'] = 2  # Smaller size for low rel_vol
 
+    # clip the values at the max limits
+    df_pa_analysis['rel_vol'] = df_pa_analysis['rel_vol'].clip(upper=max_x)
+    df_pa_analysis['price_change_pct'] = df_pa_analysis['price_change_pct'].clip(upper=max_y, lower=-max_y)
+
     # Creating the scatter plot with explicit color mapping
     color_map = {'green': '#00FF00', 'lightgreen': '#90EE90', 'gray': '#808080', 'orange': '#FFA500', 'red': '#FF0000'}
     fig = px.scatter(df_pa_analysis,
