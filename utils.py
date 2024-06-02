@@ -18,6 +18,9 @@ from config_plots import *
 from config_formatting import *
 from config_study_params import *
 
+
+text_position = 'middle left'
+
 def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
 
     # Create a 2x1 subplot
@@ -109,7 +112,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
     max_y, max_x = max_limits_oi_plot.get(interval, (100, 100))  # Default max limits
 
     # Clip values exceeding the maximum limits
-    df_oi_analysis['max_price_drop_pct'] = df_oi_analysis['max_price_drop_pct'].clip(upper=max_y)
+    df_oi_analysis['max_price_drop_pct'] = df_oi_analysis['max_price_drop_pct'].clip(upper=max_y, lower=-max_y)
     df_oi_analysis['max_open_interest_change_pct'] = df_oi_analysis['max_open_interest_change_pct'].clip(upper=max_x)
 
     # get rid of the 'USDT' in the symbol
@@ -127,7 +130,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
                      title="")
 
     # Update traces and layout for detailed display
-    fig.update_traces(textposition='bottom left', marker=dict(size=8), textfont=dict(size=14))
+    fig.update_traces(textposition=text_position, marker=dict(size=8), textfont=dict(size=14))
     fig.update_layout(
         xaxis=dict(
             title='OI change (%)',
@@ -201,8 +204,8 @@ def plot_pa_analysis(df_pa_analysis, interval):
                      size_max=12,
                      color_discrete_map=color_map)  # Explicit color mapping
 
-    # Update traces and layout for detailed display
-    fig.update_traces(textposition='top center')
+    # Update traces and layout for detailed display - text to be displayed at the left center
+    fig.update_traces(textposition=text_position, textfont=dict(size=12))
     fig.update_layout(
         xaxis=dict(
             title='Relative Volume',
