@@ -216,7 +216,7 @@ class TradingSymbolProcessor:
 
             # PA signal decisions
 
-            return {'symbol': self.symbol,
+            return {'symbol': self.symbol + '.P',
                     'is_pinbar': is_pinbar,
                     'RSI': RSI_cur,
                     'rel_vol': rel_vol,
@@ -328,13 +328,13 @@ class TradingSymbolProcessor:
                             RSI_pre = self.df_price['RSI'].iloc[-2]
 
                             # RSI must be below the threshold and the current RSI must be greater than the previous RSI
-                            if RSI_pre < self.threshold_oi_alert_rsi and RSI_cur >= RSI_pre:
+                            if RSI_pre < self.threshold_oi_alert_rsi and RSI_cur >= RSI_pre and RSI_cur < 50:
 
                                 # send the plot signal
                                 self.post_oi_alerts()
 
                     oi_analysis_results = {
-                        'symbol': self.symbol,
+                        'symbol': self.symbol + '.P',
                         'max_open_interest_change_pct': max_open_interest_change_pct,
                         'max_price_drop_pct': price_change_pct,
                     }
