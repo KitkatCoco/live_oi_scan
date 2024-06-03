@@ -216,7 +216,7 @@ class TradingSymbolProcessor:
 
             # PA signal decisions
 
-            return {'symbol': self.symbol + '.P',
+            return {'symbol': self.symbol,
                     'is_pinbar': is_pinbar,
                     'RSI': RSI_cur,
                     'rel_vol': rel_vol,
@@ -334,7 +334,7 @@ class TradingSymbolProcessor:
                                 self.post_oi_alerts()
 
                     oi_analysis_results = {
-                        'symbol': self.symbol + '.P',
+                        'symbol': self.symbol,
                         'max_open_interest_change_pct': max_open_interest_change_pct,
                         'max_price_drop_pct': price_change_pct,
                     }
@@ -364,7 +364,7 @@ class TradingSymbolProcessor:
         # send signal to discord - OI alerts
         message_separator = '-------------------------------------\n'
         message_time = f'时间 {datetime_now_str}\n'
-        message_name = f'标的 {symbol}\n'
+        message_name = f'标的 {symbol}.P\n'
         message_timescale = f'周期 {interval}\n'
         message_combined_trading = message_separator + message_time + message_name + message_timescale
 
