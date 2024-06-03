@@ -127,7 +127,7 @@ if __name__ == '__main__':
     # interval = '1h'
     # interval = '2h'
     # interval = '4h'
-    # interval = '12h'
+    interval = '12h'
 
     # timer
     start_time = time.time()
