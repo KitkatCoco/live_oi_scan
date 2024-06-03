@@ -30,9 +30,10 @@ class TradingSymbolProcessor:
         self.df_oi = None
 
     def _setup_static_parameters(self):
+
         # Static parameters initialized once since they don't change per symbol
-        self.threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[self.interval]
-        self.threshold_oi_change_pct_positive = dict_threshold_oi_change_pct_positive[self.interval]
+
+        # for general OI analysis
         self.threshold_price_change_pct_negative = dict_threshold_price_change_pct_negative[self.interval]
         self.threshold_oi_change_pct_positive = dict_threshold_oi_change_pct_positive[self.interval]
         self.short_range_end = SEARCH_NUM_CANDLE_MIN + (SEARCH_NUM_CANDLE_MAX - SEARCH_NUM_CANDLE_MIN) // 3
@@ -42,11 +43,15 @@ class TradingSymbolProcessor:
         self.threshold_oi_change_pct_positive_short_term = self.threshold_oi_change_pct_positive / 3
         self.threshold_oi_change_pct_positive_mid_term = self.threshold_oi_change_pct_positive * 2 / 3
 
+        # for OI-based RSI trigger alert
+        self.threshold_oi_alert_rsi = dict_oi_alert_rsi_thresholds[self.interval]  # this is the RSI threshold
+        self.threshold_oi_change_pct_positive_rsi_alert = 5   # this is the amount of OI change needed
+
     def _setup_webhooks(self):
         # Setup Discord webhooks for notifications
         self.webhook_discord_oi = Discord(url=dict_dc_webhook_oi[self.interval])
-        self.webhook_discord_oi_trading = Discord(url=dict_dc_webhook_oi_trading_signal[self.interval])
         self.webhook_discord_pa = Discord(url=dict_dc_webhook_pa[self.interval])
+        self.webhook_discord_trading_signal_oi_rsi = Discord(url=dict_dc_webhook_trading_signal['oi_rsi'])
 
     def _setup_current_timestamp(self):
         current_time = int(time.time() * 1000)
@@ -164,9 +169,6 @@ class TradingSymbolProcessor:
 
     def run_pa_analysis(self):
 
-        if self.symbol == 'BBUSDT':
-            print('pause here')
-
         try:
             # get the current parameter values
             RSI_cur = self.df_price['RSI'].iloc[-1]
@@ -249,9 +251,7 @@ class TradingSymbolProcessor:
 
         try:
             valid_lengths = []
-            list_price_change_pct = []
             list_oi_change_pct = []
-            idx_oi_change = []
 
             for i in range(SEARCH_NUM_CANDLE_MIN, SEARCH_NUM_CANDLE_MAX, SEARCH_NUM_CANDLE_INC):
                 # price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-i])
@@ -306,6 +306,7 @@ class TradingSymbolProcessor:
                     any(self.mid_range_end <= x <= SEARCH_NUM_CANDLE_MAX for x in valid_lengths)
                 ]
                 if all(criteria_ranges):
+
                     # find the maximum OI change and max price drop
                     max_open_interest_change_pct = max(list_oi_change_pct)
                     # max_price_drop_pct = -min(list_price_change_pct)
@@ -315,10 +316,27 @@ class TradingSymbolProcessor:
                     price_change_pct = ((self.df_price['SMA'].iloc[-1] - self.df_price['SMA'].iloc[-max_valid_length])
                                         / self.df_price['SMA'].iloc[-max_valid_length] * 100)
 
+                    # separate RSI alert, only do this for 5min, 15min and 30min
+                    if self.interval in ['5m', '15m', '30m']:
+
+                        # only when the OI goes up and the price goes down
+                        if (max_open_interest_change_pct > self.threshold_oi_change_pct_positive_rsi_alert and
+                                price_change_pct <= 0):
+
+                            # get RSI signals for the last two candles
+                            RSI_cur = self.df_price['RSI'].iloc[-1]
+                            RSI_pre = self.df_price['RSI'].iloc[-2]
+
+                            # RSI must be below the threshold and the current RSI must be greater than the previous RSI
+                            if RSI_pre < self.threshold_oi_alert_rsi and RSI_cur >= RSI_pre:
+
+                                # send the plot signal
+                                self.post_oi_alerts()
+
                     oi_analysis_results = {
                         'symbol': self.symbol,
                         'max_open_interest_change_pct': max_open_interest_change_pct,
-                        'max_price_drop_pct': price_change_pct
+                        'max_price_drop_pct': price_change_pct,
                     }
 
                     # Process the criteria met condition
@@ -331,6 +349,42 @@ class TradingSymbolProcessor:
             print(error_msg)
             traceback.print_exc()
             return None
+
+
+    def post_oi_alerts(self, generate_plot=True):
+
+        symbol = self.symbol
+        interval = self.interval
+        df_price_oi = self.df_price_oi
+        df_oi = self.df_oi
+
+        datetime_now = datetime.datetime.utcnow()
+        datetime_now_str = datetime_now.strftime(DATETIME_FORMAT)
+
+        # send signal to discord - OI alerts
+        message_separator = '-------------------------------------\n'
+        message_time = f'时间 {datetime_now_str}\n'
+        message_name = f'标的 {symbol}\n'
+        message_timescale = f'周期 {interval}\n'
+        message_combined_trading = message_separator + message_time + message_name + message_timescale
+
+        # if generate a plot, send the plot to the channel
+        if generate_plot:
+
+            fig_pattern = generate_combined_chart(df_price_oi, df_oi, symbol, interval)
+            fig_name = f'fig_pattern_{symbol}_{interval}.png'
+            fig_pattern.write_image(fig_name)
+
+            self.webhook_discord_trading_signal_oi_rsi.post(
+                content=message_combined_trading,
+                file={
+                    "file1": open(fig_name, "rb"),
+                },
+            )
+
+            # reset plot status
+            os.remove(fig_name)
+            # flag_plot_exist = False
 
 
     """ This is the main function that will be called for each symbol."""
@@ -352,64 +406,5 @@ class TradingSymbolProcessor:
         return dict_results
 
 
-
-# def post_oi_alerts(self):
-    #
-    #     symbol = self.symbol
-    #     interval = self.interval
-    #     df_price_oi = self.df_price_oi
-    #     df_oi = self.df_oi
-    #
-    #
-    #     datetime_now = datetime.datetime.utcnow()
-    #     datetime_now_str = datetime_now.strftime(DATETIME_FORMAT)
-    #
-    #
-    #     # send signal to discord - OI alerts
-    #     message_separator = '-------------------------------------\n'
-    #     message_time = f'时间 {datetime_now_str}\n'
-    #     message_name = f'标的 {symbol}\n'
-    #     message_timescale = f'周期 {interval}\n'
-    #     if arr_open_interest_change_pct < 40:
-    #         message_oi_change = f'**涨幅 {arr_open_interest_change_pct}% (OI)**\n'
-    #     else:
-    #         # if greater than 40, add a green apple emoji to the front
-    #         message_oi_change = f'**涨幅 🍏{arr_open_interest_change_pct}% (OI)**\n'
-    #     message_combined = message_separator + message_time + message_name + message_timescale + message_oi_change
-    #     webhook_discord_oi.post(content=message_combined)
-    #
-    #     if decision_entry_oi:
-    #         message_combined_trading = message_separator + message_time + message_name + message_timescale + message_entry
-    #         webhook_discord_oi_trading.post(content=message_combined_trading)
-    #
-    #     # if generate a plot, send the plot to the channel
-    #     if generate_plot:
-    #
-    #         # check if plot already exists
-    #         if flag_plot_exist:
-    #             pass
-    #         else:
-    #             fig_pattern = generate_combined_chart(df_price_oi, df_oi, symbol, interval)
-    #             fig_name = f'fig_pattern_{symbol}_{interval}.png'
-    #             fig_pattern.write_image(fig_name)
-    #
-    #         # now send the plot
-    #         webhook_discord_oi.post(
-    #             file={
-    #                 "file1": open(fig_name, "rb"),
-    #             },
-    #         )
-    #
-    #         if decision_entry_oi:
-    #             webhook_discord_oi_trading.post(
-    #                 file={
-    #                     "file1": open(fig_name, "rb"),
-    #                 },
-    #             )
-    #
-    #         # reset plot status
-    #         os.remove(fig_name)
-    #         flag_plot_exist = False
-    #
 
 

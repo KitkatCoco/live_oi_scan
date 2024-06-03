@@ -21,11 +21,12 @@ from config_study_params import *
 
 text_position = 'middle left'
 
-def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
+def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=False):
 
-    # Create a 2x1 subplot
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                        subplot_titles=("Candlestick Price Data", "Open Interest", "Funding Rate"))
+    # Create a 3x1 subplot
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
+                        subplot_titles=("Candlestick Price Data", "Open Interest", "RSI"),
+                        vertical_spacing=0.05)
 
     # Add Candlestick plot
     fig.add_trace(
@@ -70,6 +71,17 @@ def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
     # set the y limit to [0, df_oi['sumOpenInterest'].max()]),
     fig.update_yaxes(range=[df_oi['sumOpenInterest'].min()*0.95, df_oi['sumOpenInterest'].max()], row=2, col=1)
 
+    # Add RSI plot
+    fig.add_trace(
+        go.Scatter(x=df_price['Time'],
+                   y=df_price['RSI'],
+                   mode='lines',
+                   name='RSI',
+                   line=dict(color='yellow')),
+        row=3, col=1
+    )
+
+
     # Update layout to make the plot wider and remove the range slider from the OHLC plot
     fig.update_layout(height=600, width=1000,
                       title_text=f"{symbol} {interval}",
@@ -95,6 +107,7 @@ def generate_combined_chart(df_price, df_oi, symbol, interval, use_sma=True):
     fig.update_layout(showlegend=False)
 
     return fig
+
 
 def plot_oi_analysis(df_oi_analysis, interval):
     """
@@ -134,7 +147,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
     fig.update_layout(
         xaxis=dict(
             title='OI change (%)',
-            range=[0, max_x],
+            range=[0, max_x * 1.1],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
@@ -142,7 +155,7 @@ def plot_oi_analysis(df_oi_analysis, interval):
         ),
         yaxis=dict(
             title='Price change (%)',
-            range=[-max_y, max_y],
+            range=[-max_y * 1.1, max_y * 1.1],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
@@ -154,8 +167,6 @@ def plot_oi_analysis(df_oi_analysis, interval):
 
     return fig
 
-import plotly.express as px
-import pandas as pd
 
 def plot_pa_analysis(df_pa_analysis, interval):
     # Constants for axes limits
@@ -209,7 +220,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
     fig.update_layout(
         xaxis=dict(
             title='Relative Volume',
-            range=[0, max_x],
+            range=[0, max_x * 1.1],
             showgrid=True,
             gridcolor='LightGray',
             title_font=dict(size=18),
@@ -217,7 +228,7 @@ def plot_pa_analysis(df_pa_analysis, interval):
         ),
         yaxis=dict(
             title='Price Change (%)',
-            range=[-max_y, max_y],
+            range=[-max_y * 1.1, max_y * 1.1],
             showgrid=True,
             title_font=dict(size=18),
             tickfont=dict(size=14)

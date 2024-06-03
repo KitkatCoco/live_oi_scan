@@ -17,3 +17,13 @@ dict_threshold_price_change_pct_negative = {
     '4h': -0.5,
     '12h': -1,
 }
+
+dict_oi_alert_rsi_thresholds = {
+    '5m': 20,
+    '15m': 20,
+    '30m': 30,
+    # '1h': 0.5,
+    # '2h': 0.5,
+    # '4h': 0.5,
+    # '12h': 1,
+}

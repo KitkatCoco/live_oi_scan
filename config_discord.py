@@ -19,6 +19,18 @@ dict_dc_webhook_pa = {
     '12h': 'https://discord.com/api/webhooks/1246616258271776869/pc-spC9P3IgijJ3LeMjZgFPMtcdNuSTp_FXH8x1XEO7BZx67B5oL99Ujd8Y96CBKZ-vj',
 }
 
+dict_dc_webhook_trading_signal = {
+    'oi_rsi': 'https://discord.com/api/webhooks/1247045377560154227/rUDKkpuShB41TbzzZolJxSfvTlWdlcIiOJUxIADHqkuEIl7E-CTfZrerqBhaKqhI22Pe',
+}
+
+dict_dc_webhook_rs = {
+    '1h': 'https://discord.com/api/webhooks/1241478762386817034/sQqJ5UxcLvP7QbLtFPrJkiIVevMNlGzGy18TKgKGwNHnoLLY7xBOWRfjgzQdm4MtWxa9',
+}
+
+
+
+
+
 
 ## kitkat trading
 # dict_dc_webhook_oi = {
@@ -42,23 +54,5 @@ dict_dc_webhook_pa = {
 # }
 
 
-
-
-
-
-
-dict_dc_webhook_oi_trading_signal = {
-     '5m': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '15m': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '30m': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '1h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '2h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '4h':  'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-    '12h': 'https://discordapp.com/api/webhooks/1187886464344784926/XEtTzxeUM71UdN4IxFb5p9_TtY4AoH-qt2dnZ6GZZK5hBXAVgKOWNboVjX1iPvi9Kczm',
-}
-
-dict_dc_webhook_rs = {
-    '1h': 'https://discord.com/api/webhooks/1241478762386817034/sQqJ5UxcLvP7QbLtFPrJkiIVevMNlGzGy18TKgKGwNHnoLLY7xBOWRfjgzQdm4MtWxa9',
-}
 
 

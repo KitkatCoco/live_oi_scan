@@ -116,7 +116,7 @@ def post_processing_pa(results_pa, interval):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download and update cryptocurrency data for a specific time scale.')
-    parser.add_argument('interval', default='5m', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h')
+    parser.add_argument('--interval', default='5m', type=str, help='Time scale for the data, e.g., 1h, 4h, 12h', nargs='?')
     args = parser.parse_args()
     interval = args.interval
 
