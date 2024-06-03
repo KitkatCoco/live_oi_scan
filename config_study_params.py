@@ -29,3 +29,6 @@ RSI_OVERBOUGHT = 50
 PINBAR_BODY_ATR_THRES_MULTIPLIER = 0.5
 # VOL_MA_THRES_MULTIPLIER = 1
 POWAY_NUM_CANDLE_LOOKBACK = 20
+
+# OI_RSI strategy parameters
+list_oi_rsi_alert_intervals = ['5m', '15m', '30m', '1h', '2h', '4h', '12h']

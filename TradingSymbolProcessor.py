@@ -317,7 +317,7 @@ class TradingSymbolProcessor:
                                         / self.df_price['SMA'].iloc[-max_valid_length] * 100)
 
                     # separate RSI alert, only do this for 5min, 15min and 30min
-                    if self.interval in ['5m', '15m', '30m']:
+                    if self.interval in list_oi_rsi_alert_intervals:
 
                         # only when the OI goes up and the price goes down
                         if (max_open_interest_change_pct > self.threshold_oi_change_pct_positive_rsi_alert and
